@@ -1,0 +1,1 @@
+# Rscript --vanilla sim-high-dim-1-1.R > log.txt &

@@ -1,0 +1,5 @@
+Size of plots:
+
+portrait
+7.5
+3.5
