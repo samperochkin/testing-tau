@@ -41,19 +41,13 @@ simFun <- function(n=100, d=10, k=NULL, tau=.5, dtau=0, distribution="normal", n
     library(Matrix)
   })
   
-  source("functions/computeTh.R")
-  source("functions/buildSigma.R")
   source("functions/generateData.R")
-  source("functions/testEquiRankPlugin.R")
   source("functions/testEquiRankJackknife.R")
-  source("functions/testEquiRankWeird.R")
+  source("functions/testEquiRankJackknifeCor.R")
   clusterExport(clus, varlist=c("sim.grid",
                                 "generateData",
-                                "computeTh",
-                                "buildSigma",
-                                "testEquiRankPlugin",
                                 "testEquiRankJackknife",
-                                "testEquiRankWeird"),envir = environment())
+                                "testEquiRankJackknifeCor"),envir = environment())
   
   # simuls
   res <- rbindlist(parLapply(clus, sample(nrow(sim.grid)), function(r){
@@ -69,21 +63,14 @@ simFun <- function(n=100, d=10, k=NULL, tau=.5, dtau=0, distribution="normal", n
     distribution <- sim.grid[r,]$distribution
     
     X <- generateData(n,d,tau,dtau,dtau_type,distribution)
-    test.plugin <- testEquiRankPlugin(X,4000)
     test.jackknife <- testEquiRankJackknife(X,4000)
-    test.weird <- testEquiRankWeird(X,4000)
+    test.jackknife.cor <- testEquiRankJackknifeCor(X,4000)
     
-    modified.plugin <- test.plugin["modified"]
-    test.plugin <- test.plugin[-which(names(test.plugin)=="modified")]
-    modified.jackknife <- test.jackknife["modified"]
-    test.jackknife <- test.jackknife[-which(names(test.jackknife)=="modified")]
-
-    test <- c(test.plugin,test.jackknife,test.weird)
-
-    res.grid <- sim.grid[rep(r,length(test)),]
-    res.grid[1:length(test.plugin), `:=` (sigma = "plugin", test = names(test.plugin), pval = test.plugin, modified = modified.plugin)]
-    res.grid[(1+length(test.plugin)):(length(test.plugin)+length(test.jackknife)), `:=` (sigma = c(rep("jackknife",8),"bootstrap"), test = names(test.jackknife), pval = test.jackknife, modified = modified.jackknife)]
-    res.grid[(1+length(test.plugin)+length(test.jackknife)):length(test), `:=` (sigma = "weird", test = names(test.weird), pval = test.weird, modified = NA)]
+    res.grid <- sim.grid[rep(r,4*ncol(test.jackknife)),]
+    res.grid[1:ncol(test.jackknife), `:=` (sigma = "jackknife", correction = FALSE, force_constraints = FALSE, test = colnames(test.jackknife), pval = test.jackknife[1,])]
+    res.grid[ncol(test.jackknife) + 1:ncol(test.jackknife), `:=` (sigma = "jackknife", correction = FALSE, force_constraints = TRUE, test = colnames(test.jackknife), pval = test.jackknife[2,])]
+    res.grid[2*ncol(test.jackknife) + 1:ncol(test.jackknife), `:=` (sigma = "jackknife", correction = TRUE, force_constraints = FALSE, test = colnames(test.jackknife), pval = test.jackknife.cor[1,])]
+    res.grid[3*ncol(test.jackknife) + 1:ncol(test.jackknife), `:=` (sigma = "jackknife", correction = TRUE, force_constraints = TRUE, test = colnames(test.jackknife), pval = test.jackknife.cor[2,])]
     res.grid
   }))
   

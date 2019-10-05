@@ -41,15 +41,11 @@ simFun <- function(n=100, d=10, k=NULL, tau=.5, dtau=0, distribution="normal", n
     library(Matrix)
   })
   
-  source("functions/computeTh.R")
-  source("functions/buildSigma.R")
   source("functions/generateData.R")
   source("functions/testEquiRankJackknife.R")
   source("functions/testEquiRankWeird.R")
   clusterExport(clus, varlist=c("sim.grid",
                                 "generateData",
-                                "computeTh",
-                                "buildSigma",
                                 "testEquiRankJackknife",
                                 "testEquiRankWeird"),envir = environment())
   
@@ -67,13 +63,15 @@ simFun <- function(n=100, d=10, k=NULL, tau=.5, dtau=0, distribution="normal", n
     distribution <- sim.grid[r,]$distribution
     
     X <- generateData(n,d,tau,dtau,dtau_type,distribution)
-    test.jackknife <- testEquiRankJackknife(X,1000)
-    test.weird <- testEquiRankWeird(X,1000)
-    test <- c(test.jackknife,test.weird)
-
+    test.jackknife <- testEquiRankJackknife(X,4000)
+    test.weird <- testEquiRankWeird(X,4000)
+    
+    modified.jackknife <- test.jackknife["modified"]
+    test.jackknife <- test.jackknife[-which(names(test.jackknife)=="modified")]
+    
     res.grid <- sim.grid[rep(r,length(test)),]
-    res.grid[1:length(test.jackknife), `:=` (sigma = c(rep("jackknife",7),"bootstrap"), test = names(test.jackknife), pval = test.jackknife)]
-    res.grid[(1+length(test.jackknife)):length(test), `:=` (sigma = "weird", test = names(test.weird), pval = test.weird)]
+    res.grid[1:length(test.jackknife), `:=` (sigma = c(rep("jackknife",8),"bootstrap"), test = names(test.jackknife), pval = test.jackknife, modified = modified.jackknife)]
+    res.grid[(1+length(test.jackknife)):length(test), `:=` (sigma = "weird", test = names(test.weird), pval = test.weird, modified = NA)]
     res.grid
   }))
   
