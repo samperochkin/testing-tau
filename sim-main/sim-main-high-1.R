@@ -23,6 +23,6 @@ simFun(n = c(50,100,200),
        distribution = c("normal"),
        num_sim = 2000,
        filename = "dt_main_high_1",
-       clus = c(rep("dms11",8),rep(c("dms1","dms2","dms3","dms4","dms5","dms6","dms7"),4))
+       clus = c(rep("dms11",10),rep(c("dms1","dms2","dms3","dms4","dms5","dms6","dms7","dms9"),4))
 )
 difftime(Sys.time(),tiime)

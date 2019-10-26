@@ -36,8 +36,8 @@ dt.sub
 
 
 # maha
-dt.sub <- dt[dtau == 0  & test == "maha"  & distribution == "normal", .(size = round(mean(pval < .05),3)), .(tau, n, d, correction, force_constraints)]
-dt.sub <- dcast(dt.sub, tau + d + n ~ correction + force_constraints, value.var = "size")
+dt.sub <- dt[dtau == 0  & test == "maha"  & distribution == "normal", .(size = round(mean(pval < .05),3)), .(tau, n, d, correction, force_constraints, sigma)]
+dt.sub <- dcast(dt.sub, sigma + tau + d + n ~ correction + force_constraints, value.var = "size")
 dt.sub
 
 

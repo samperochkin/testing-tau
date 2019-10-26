@@ -1,14 +1,20 @@
-setwd("sim-main")
+setwd("sim-extra")
 library(data.table)
 library(xtable)
-dt <- rbindlist(list(fread("dt_main_low_1.csv"),fread("dt_main_low_2.csv"),fread("dt_main_high_1.csv")))
-dt <- dt[order(ID),]
+dt100 <- fread("dt_extra_1.csv")
+dt200 <- fread("dt_extra_2.csv")
 
+dt100[,n:=100]
+dt200[,n:=200]
+
+dt <- rbind(dt100,dt200)
 
 # Size --------------------------------------------------------------------
 
-dt.sub <- dt[dtau == 0 & distribution == "normal", .(size = mean(pval < .05)), .(distribution, tau, sigma, test, n, d)]
-dt.sub <- dcast(dt.sub, d + sigma + test ~ n + tau, value.var = "size")
+dt <- melt(dt,id.vars = c("cor","n"),variable.name = "test",value.name = "pval")
+
+dt.sub <- dt[, .(size = mean(pval < .05)), .(cor,test,n)]
+dt.sub <- dcast(dt.sub, test + n ~ cor, value.var = "size")
 dt.sub
 
 
@@ -40,22 +46,16 @@ dt.sub <- dcast(dt.sub, d + sigma + test ~ n + tau, value.var = "size")
 nn <- names(dt.sub)
 dt.sub[,(nn[-c(1:3)]) := round(.SD,3), .SDcols=nn[-c(1:3)]]
 
-dt.sub2 <- matrix(NA, 27 + 3*3, ncol(dt.sub)+3)
+dt.sub2 <- matrix(NA, nrow(dt.sub) + length(unique(dt.sub$d))*3, ncol(dt.sub)+3)
 dt.sub2[-c(seq(2,nrow(dt.sub2),12),
            seq(7,nrow(dt.sub2),12),
            seq(12,nrow(dt.sub2),12)),
-        -c(4,8,12)] <- as.matrix(dt.sub[d <= 25,])
+        -c(4,8,12)] <- as.matrix(dt.sub)
 
-dt.sub3 <- matrix(NA, 5 + 2, ncol(dt.sub)+3)
-dt.sub3[-c(2,7),
-        -c(4,8,12)] <- as.matrix(dt.sub[d == 50,])
-
-dt.sub <- rbind(dt.sub2,dt.sub3)
-
-nn2 <- rep(" ",ncol(dt.sub))
+nn2 <- rep(" ",ncol(dt.sub2))
 nn2[-c(4,8,12)] <- nn
-colnames(dt.sub) <- nn2
-print(xtable(dt.sub, digits = 3), include.rownames=FALSE)
+colnames(dt.sub2) <- nn2
+print(xtable(dt.sub2, digits = 3), include.rownames=FALSE)
 
 
 # power -------------------------------------------------------------------

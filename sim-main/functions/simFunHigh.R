@@ -69,9 +69,9 @@ simFun <- function(n=100, d=10, k=NULL, tau=.5, dtau=0, distribution="normal", n
     modified.jackknife <- test.jackknife["modified"]
     test.jackknife <- test.jackknife[-which(names(test.jackknife)=="modified")]
     
-    res.grid <- sim.grid[rep(r,length(test)),]
+    res.grid <- sim.grid[rep(r,length(c(test.jackknife,test.weird))),]
     res.grid[1:length(test.jackknife), `:=` (sigma = c(rep("jackknife",8),"bootstrap"), test = names(test.jackknife), pval = test.jackknife, modified = modified.jackknife)]
-    res.grid[(1+length(test.jackknife)):length(test), `:=` (sigma = "weird", test = names(test.weird), pval = test.weird, modified = NA)]
+    res.grid[(1+length(test.jackknife)):length(c(test.jackknife,test.weird)), `:=` (sigma = "weird", test = names(test.weird), pval = test.weird, modified = NA)]
     res.grid
   }))
   

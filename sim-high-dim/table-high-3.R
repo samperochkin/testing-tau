@@ -2,7 +2,7 @@ setwd("sim-high-dim")
 library(data.table)
 library(xtable)
 
-dt <- fread("dt_high_dim_3.csv")
+dt <- rbindlist(list(fread("dt_high_dim_3_1.csv"),fread("dt_high_dim_3_2.csv")))
 dt <- dt[order(ID),]
 
 

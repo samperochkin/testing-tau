@@ -1,5 +1,6 @@
 testEquiRankJackknife <- function(X, M = 2000){
   
+  # tiime <- Sys.time()
   # setup -------------------------------------------------------------------
   n <- nrow(X)
   d <- ncol(X)
@@ -16,17 +17,17 @@ testEquiRankJackknife <- function(X, M = 2000){
   t.col <- (colSums(Tau.hat)-1)/(d-1)
   t.bar <- mean(t.col)
   t.star <- (d-1)/(d-2)*(t.col[ij.mat[,1]] + t.col[ij.mat[,2]]) - d/(d-2)*t.bar
-  t.cen <- t.hat-t.bar
   
   # components of Hajek projection
   T.hajek <- lapply(1:n, function(r){
-    V <- t(X[r,] < t(X[-r,]))
-    V <- Reduce("+",lapply(1:nrow(V), function(k){
-      4*(outer(V[k,],V[k,],"=="))
+    v <- t(X[r,] < t(X[-r,]))
+    v <- rowSums(apply(v, 1, function(v){
+      4*(outer(v,v,"=="))[ij.mat]
     }))
+    V <- diag(d)
+    V[ij.mat] <- V[ij.mat[,2:1]] <- v #- mean(v)# - t.cen/n
     V
   })
-  
   
   Tcs <- sapply(T.hajek, function(Th) (colSums(Th)-1)/(d-1))
   Ths <- sapply(T.hajek, function(Th) Th[ij.mat])
@@ -37,10 +38,7 @@ testEquiRankJackknife <- function(X, M = 2000){
     mean(apply(Tcs, 1, var))/(n*(n-1)),
     var(Tbs)/(n*(n-1))  
   )
-  sigma <- c(sigma %*% matrix(c(1,0,0,
-                     -1/(d-2),(d-1)/(d-2),0,
-                     1/(p-2*d+3),-2*(d-1)/(p-2*d+3),p/(p-2*d+3)),3,3))
-
+  
 
   delta <- rbind(c(1,-2,1),c(1,d-4,3-d)) %*% sigma
   
@@ -53,19 +51,65 @@ testEquiRankJackknife <- function(X, M = 2000){
   sup_p <- sqrt(n)*max(abs(t.hat-t.star))
   sup_d <- sqrt(n)*max(abs(t.col-t.bar))
   sups <- sqrt(n)*max(abs((t.hat-t.star) * sqrt(1/delta[1]) + (t.star-t.bar) * sqrt(1/delta[2])))
-
-
+  
+  
   #### p-values
   MCeuc <- delta[1]*rchisq(M, p-d) + delta[2]*rchisq(M, d-1)
   
-  sigma.sup <- sigma
-  if(sigma[2] < sigma[3]) sigma.sup[2:3] <- mean(sigma[2:3])
-  sigma.sup <- pmax(sigma.sup,0)
-  delta.sup <- c(1,-2,1) %*% sigma.sup
+  Z1 <- replicate(M, {rnorm(d,0,sqrt(sigma[2]-sigma[3]))})
+  Z2 <- replicate(M, {rnorm(p,0,sqrt(delta[1]))})
+  Z.hat <- Z2 + Z1[ij.mat[,1],] + Z1[ij.mat[,2],]
+  Z.bar <- colMeans(Z.hat)
+  Z.col <- t(sapply(1:d, function(i) colMeans(Z.hat[ij.l.mat[,i],])))
+  Z.star <- t(t((d-1)/(d-2)*(Z.col[ij.mat[,1],] + Z.col[ij.mat[,2],])) - d/(d-2)*Z.bar)
   
-  # For sup 
-  Z1 <- replicate(M, {rnorm(d,0,sqrt(sigma.sup[2]-sigma.sup[3]))})
-  Z2 <- replicate(M, {rnorm(p,0,sqrt(delta.sup[1]))})
+  MC.hb <- apply(t(Z.hat) - Z.bar, 1, function(z) max(abs(z)))
+  MC.hs <- apply(Z.hat - Z.star, 2, function(z) max(abs(z)))
+  MC.cb <- apply(t(Z.col) - Z.bar, 1, function(z) max(abs(z)))
+  
+
+  MCsups <- replicate(M, {z <- rnorm(p); max(abs(z-mean(z)))})
+  # print(difftime(Sys.time(),tiime))
+  
+  
+
+  pvals <- c(
+    maha = pchisq(maha,p-1,lower.tail = F),
+    maha_d = pchisq(maha_d,d-1,lower.tail = F),
+    maha_p = pchisq(maha_p,p-d,lower.tail = F),
+    euc = mean(MCeuc > euc),
+    
+    sups = mean(MCsups > sups),
+    sup_d = mean(MC.cb > sup_d),
+    sup_p = mean(MC.hs > sup_p),
+    sup = mean(MC.hb > sup)
+  )
+  
+
+  
+  
+  sigma <- c(sigma %*% matrix(c(1,0,0,
+                                -1/(d-2),(d-1)/(d-2),0,
+                                1/(p-2*d+3),-2*(d-1)/(p-2*d+3),p/(p-2*d+3)),3,3))
+  
+  delta <- rbind(c(1,-2,1),c(1,d-4,3-d)) %*% sigma
+  
+  euc <- c(n*crossprod(t.hat-t.bar))
+  maha_p <- c(n*crossprod(t.hat-t.star))/delta[1]
+  maha_d <- (d-1)^2/(d-2)*c(n*crossprod(t.col-t.bar))/delta[2]
+  maha <- maha_d + maha_p
+  
+  sup <- sqrt(n)*max(abs(t.hat-t.bar))
+  sup_p <- sqrt(n)*max(abs(t.hat-t.star))
+  sup_d <- sqrt(n)*max(abs(t.col-t.bar))
+  sups <- sqrt(n)*max(abs((t.hat-t.star) * sqrt(1/delta[1]) + (t.star-t.bar) * sqrt(1/delta[2])))
+  
+  
+  #### p-values
+  MCeuc <- delta[1]*rchisq(M, p-d) + delta[2]*rchisq(M, d-1)
+  
+  Z1 <- replicate(M, {rnorm(d,0,sqrt(sigma[2]-sigma[3]))})
+  Z2 <- replicate(M, {rnorm(p,0,sqrt(delta[1]))})
   Z.hat <- Z2 + Z1[ij.mat[,1],] + Z1[ij.mat[,2],]
   Z.bar <- colMeans(Z.hat)
   Z.col <- t(sapply(1:d, function(i) colMeans(Z.hat[ij.l.mat[,i],])))
@@ -77,15 +121,11 @@ testEquiRankJackknife <- function(X, M = 2000){
   
   
   MCsups <- replicate(M, {z <- rnorm(p); max(abs(z-mean(z)))})
-
+  # print(difftime(Sys.time(),tiime))
   
-  # tiime <- Sys.time()
-  # Boot
-  BOOTsup <- replicate(M, {
-    sqrt(n)*max(abs(((Ths-t(matrix(Tbs,n,p)))/(n*(n-1)) - t.cen/n) %*% rnorm(n)))
-  })
   
-  pvals <- c(
+  
+  pvals.cor <- c(
     maha = pchisq(maha,p-1,lower.tail = F),
     maha_d = pchisq(maha_d,d-1,lower.tail = F),
     maha_p = pchisq(maha_p,p-d,lower.tail = F),
@@ -94,14 +134,10 @@ testEquiRankJackknife <- function(X, M = 2000){
     sups = mean(MCsups > sups),
     sup_d = mean(MC.cb > sup_d),
     sup_p = mean(MC.hs > sup_p),
-    sup = mean(MC.hb > sup),
-    
-    sup_boot = mean(BOOTsup > sup),
-    
-    modified = !identical(sigma,sigma.sup)
+    sup = mean(MC.hb > sup)
   )
-               
-  pvals
+  
+  rbind(pvals,pvals.cor)
 }  
 
 

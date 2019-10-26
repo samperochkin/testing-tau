@@ -1,0 +1,210 @@
+source("thesis-application/setup/constructFun.R")
+# source("thesis-application/setup/big-structure.R")
+# source("thesis-application/setup/small-structure.R")
+source("thesis-application/setup/tiny-structure.R")
+source("thesis-application/setup/generate.R")
+source("thesis-application/setup/setup.R")
+
+library(dendextend)
+sapply(list.files("thesis-application/functions/",full.names = T), source)
+
+M <- 2000
+alpha <- .05
+
+# Tau.hat <- abs(Tau.hat- Tau.tilde)
+hc <- hclust(as.dist(sqrt(pmax(1-Tau.hat,0))), "single")
+par(mfrow=c(1,1))
+plot(hc)
+
+dend <- as.dendrogram(hc)
+
+if(any(!sapply(labels(dend),is.integer))){
+  true.labels <- get_leaves_attr(dend,"label")
+  labels(dend) <- sapply(labels(dend), function(lab) which(colnames(Tau.hat) == lab))
+}
+
+
+dend <- dendrapply(dend, function(node){
+  if(!is.leaf(node)) attr(node,"type") <- 1
+  node
+})
+vec.address <- getAddresses(dend)
+
+for(v in rev(vec.address)){
+  print(v)
+  # if(identical(v,c(0,1))) break
+# r <- 1
+# while(T){
+#   v <- rev(vec.address)[[r]]
+  # upload node
+  if(length(v) == 1){
+    node <- dend
+  }else{
+    node <- dend[[v[-1]]]
+  }
+  
+  # if(!is.leaf(node)) break
+  if(is.leaf(node)){
+    # r <- r+1
+    next
+  }
+  
+  to.pull <- which(!sapply(node, is.leaf))
+  to.pull <- to.pull[which(!sapply(node[to.pull], attr, which="valid"))]
+
+  for(k in rev(to.pull)){
+    node <- unbranch(node,k)
+    attr(node, "type") <- 0
+  }
+  
+  # re-assign node
+  if(length(v) == 1){
+    dend <- node
+  }else{
+    dend[[v[-1]]] <- node
+  }
+  if(!identical(v,0)) attr(node, "valid") <- testOuter(node, Tau.hat, dend) > alpha
+  
+
+  # re-assign node
+  if(length(v) == 1){
+    dend <- node
+  }else{
+    dend[[v[-1]]] <- node
+  }
+  # r <- r+1
+}
+
+plot(dend)
+
+
+
+
+
+
+vec.address <- getAddresses(dend)
+for(v in rev(vec.address)){
+  
+  # upload node
+  if(length(v) == 1){
+    node <- dend
+  }else{
+    node <- dend[[v[-1]]]
+  }
+  
+  if(attr(node,"members") <= 2) next
+  if(attr(node,"type") == 0) next
+  
+  while(T){
+    
+    candidates <- which(!sapply(node, is.leaf))
+    candidates <- candidates[which(sapply(node[candidates], attr, which="type")==1)]
+    
+    if(length(candidates) == 0) break
+    
+    k <- candidates[which.max(get_childrens_heights(node)[candidates])]
+    pval <- testInner(Tau.hat,node,k)
+    
+    if(pval > .05){
+      node <- unbranch(node,k)
+      attr(node,"type") <- 1
+    }else{
+      break
+    }
+  }
+  
+  # re-assign node
+  if(length(v) == 1){
+    dend <- node
+  }else{
+    dend[[v[-1]]] <- node
+  }
+}
+
+
+plot(dend)
+
+
+W <- matrix(1,d,d)
+
+vec.address <- getAddresses(dend)
+for(v in vec.address){
+  if(length(v) == 1){
+    node <- dend
+  }else{
+    node <- dend[[v[-1]]]
+  }
+  
+  ind <- unlist(node)
+  
+  print(cbind(v,length(node)))
+  
+  W[ind,-ind] <- W[ind,-ind] * length(node)
+}
+
+W <- W*t(W)
+
+Tau.tilde <- matrix(0,d,d)
+
+for(v in vec.address){
+  if(length(v) == 1){
+    node <- dend
+  }else{
+    node <- dend[[v[-1]]]
+  }
+  
+  if(is.leaf(node)) next
+  
+  kk.mat <- t(combn(length(node),2))
+  vals <- apply(kk.mat, 1, function(kk){
+    ind1 <- unlist(node[[kk[1]]])
+    ind2 <- unlist(node[[kk[2]]])
+    
+    sum(Tau.hat[ind1,ind2]*W[ind1,ind2])/sum(W[ind1,ind2])
+  })
+
+  
+  if(identical(attr(node,"type"),1)) vals <- rep(mean(vals),length(vals))
+  
+  for(k in 1:nrow(kk.mat)){
+    kk <- kk.mat[k,]
+    
+    ind1 <- unlist(node[[kk[1]]])
+    ind2 <- unlist(node[[kk[2]]])
+    
+    Tau.tilde[ind1,ind2] <- vals[k]
+  }
+}
+Tau.tilde <- Tau.tilde + t(Tau.tilde) + diag(d)
+
+par(mfrow = c(1,3), mar = c(1,1,1,1))
+image(t(Tau[d:1,]), col=heat.colors(100))
+image(t(Tau.hat[d:1,]), col=heat.colors(100))
+image(t(Tau.tilde[d:1,]), col=heat.colors(100))
+
+sum((Tau-Tau.tilde)^2)/sum((Tau-Tau.hat)^2)
+
+
+oo <- hc$order
+par(mfrow = c(1,2), mar = c(1,1,1,1))
+image(t(Tau.hat[rev(oo),oo]), zlim = c(0,1), col=rainbow(100))
+image(t(Tau.tilde[rev(oo),oo]), zlim = c(0,1), col=rainbow(100))
+# 
+# par(mfrow = c(1,1), mar = c(4,2,1,1))
+# labels(dend) <- true.labels
+# plot(dend)
+# 
+# 
+# par(mfrow = c(1,1), mar = c(6,2,1,1))
+# labels(dend) <- sapply(true.labels, function(nn) meta[Symbol == nn,]$Sector)
+# plot(dend)
+# 
+# 
+# par(mfrow = c(1,1), mar = c(15,2,1,1))
+# labels(dend) <- sapply(true.labels, function(nn) meta[Symbol == nn,]$industry)
+# plot(dend)
+# 
+# 
+# par(mfrow = c(1,1), mar = c(15,2,1,1))
+# labels(dend) <- sapply(true.labels, function(nn) meta[Symbol == nn,]$Name)
+# plot(dend)
