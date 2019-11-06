@@ -1,4 +1,4 @@
-constructTauTilde <- function(dend){
+constructTauTilde <- function(dend, return.single.values = F){
   
   vec.address <- getAddresses(dend)
   W <- matrix(1,d,d)
@@ -13,11 +13,15 @@ constructTauTilde <- function(dend){
   
   
   Tau.tilde <- matrix(0,d,d)
+  valz <- numeric(0)
   
   for(v in vec.address){
     
     node <- getSubDend(dend,v)
-    if(is.leaf(node)) next
+    if(is.leaf(node)){
+      valz <- c(valz,1)
+      next
+    } 
     
     
     kk.mat <- t(combn(length(node),2))
@@ -27,8 +31,9 @@ constructTauTilde <- function(dend){
       
       sum(Tau.hat[ind1,ind2]*W[ind1,ind2])/sum(W[ind1,ind2])
     })
-    if(identical(attr(node,"type"),1)) vals <- rep(mean(vals),length(vals))
     
+    if(identical(attr(node,"type"),1)) vals <- rep(mean(vals),length(vals))
+    if(return.single.values) valz <- c(valz,mean(vals))
     
     for(k in 1:nrow(kk.mat)){
       kk <- kk.mat[k,]
@@ -41,5 +46,6 @@ constructTauTilde <- function(dend){
   }
   Tau.tilde <- Tau.tilde + t(Tau.tilde) + diag(d)
   
+  if(return.single.values) return(valz)
   return(Tau.tilde)
 }

@@ -1,3 +1,4 @@
+# loopHetero <- function(dend, Tau.hat, M, alpha){
 loopHetero <- function(dend){
   
   vec.address <- getAddresses(dend)

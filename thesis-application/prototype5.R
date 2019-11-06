@@ -1,7 +1,7 @@
 source("thesis-application/setup/constructFun.R")
 # source("thesis-application/setup/big-structure.R")
-source("thesis-application/setup/small-structure.R")
-# source("thesis-application/setup/tiny-structure.R")
+# source("thesis-application/setup/small-structure.R")
+source("thesis-application/setup/tiny-structure.R")
 source("thesis-application/setup/generate.R")
 # X <- readRDS("application/returns_mat.rds")
 # Tau.hat <- cor.fk(X)
@@ -66,11 +66,11 @@ library(circlize)
 # 
 dend <- dendrapply(dend, function(node){
   if(is.leaf(node)) return(node)
-
+  
   inds <- lapply(node, get_leaves_attr, attribute="label")
-
+  
   kks <- t(combn(length(inds),2))
-
+  
   attr(node, "height") <- 1 - mean(apply(kks,1,function(kk) mean(Tau.hat[inds[[kk[1]]],inds[[kk[2]]]])))
   node
 })
