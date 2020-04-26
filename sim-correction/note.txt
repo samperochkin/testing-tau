@@ -1,4 +1,0 @@
-Note -- the equal-1 simulation was performed with the little mistake in the test procedures that were corrected.
-Although they still provide some valuable insights, the obtained p-values are no longer valid.
-
-Same for correction-1

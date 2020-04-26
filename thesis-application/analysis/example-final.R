@@ -8,7 +8,7 @@ set.seed(seed)
 X <- rmvnorm(n=85, sigma = sin(pi*Tau/2))
 
 
-  source("thesis-application/structureBuilder5.R")
+source("thesis-application/structureBuilder5.R")
 struc <- structureBuilder(X)
 
 ##

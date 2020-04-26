@@ -12,16 +12,16 @@ structureBuilder <- function(X, M = 2000, alpha = .05){
 
   print("Initialization")
   dend.init <- initialObjects(Tau.hat)$dend
-  Tau.init <- constructTauTilde(dend.init)
+  Tau.init <- constructTauTilde(dend.init, Tau.hat)
   
   
   print("Loop - hetero")
   dend.hetero <- loopHetero(dend.init)
-  Tau.hetero <- constructTauTilde(dend.hetero)
+  Tau.hetero <- constructTauTilde(dend.hetero, Tau.hat)
   
   print("Loop - homo")
   dend.final <- loopHomo(dend.hetero)
-  Tau.final <- constructTauTilde(dend.final)
+  Tau.final <- constructTauTilde(dend.final, Tau.hat)
   
   dends <- list(dend.init,dend.hetero,dend.final)
   Taus <- list(Tau.hat,Tau.init,Tau.hetero,Tau.final)
