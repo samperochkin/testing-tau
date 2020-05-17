@@ -1,5 +1,10 @@
-initializeDend <- function(Tau.hat, method = "average", doPlot = F){
-  hc <- hclust(as.dist(sqrt(1-Tau.hat)), method)
+initializeDend <- function(Tau.hat, method = "average", doPlot = F, noSR = F){
+  if(noSR){
+    hc <- hclust(as.dist(sqrt(1-Tau.hat)), method)
+  }else{
+    hc <- hclust(as.dist(1-Tau.hat), method)
+  }
+  
   
   if(doPlot) plot(hc)
   

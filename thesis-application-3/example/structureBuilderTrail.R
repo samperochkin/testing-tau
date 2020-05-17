@@ -40,12 +40,12 @@ structureBuilderTrail <- function(X, hclust_method = "average", alpha = .05, M =
   print("Loop")
   for(s in rev(seq_along(vec.address))){
     v <- vec.address[[s]]
-    
+
     v.list[[ll-s+1]] <- v
     dend.begin.list[[ll-s+1]] <- dend
     Tau.list[[ll-s+1]] <- constructTauTilde(dend,Tau.hat)
     print(v)
-
+    
     node <- getSubDend(dend,v)
     if(is.leaf(node)) next
     # if(length(node) == 3) break
@@ -63,33 +63,34 @@ structureBuilderTrail <- function(X, hclust_method = "average", alpha = .05, M =
       v.modifs.list[[ll-s+1]] <- integer(0)
       res.modifs.list[[ll-s+1]] <- integer(0)
       Tau.modifs.list[[ll-s+1]] <- list()
-
+      
       # children that could be pulled
       candidates <- which(!sapply(node, is.leaf))
       candidates <- candidates[which(sapply(node[candidates], attr, which="delta")==1)]
-      if(length(candidates) != 0) candidates <- candidates[order(get_childrens_heights(node)[candidates],decreasing = T)]
-      
-      for(r in seq_along(candidates)){
-        
-        dend.modifs.list[[ll-s+1]] <- c(dend.modifs.list[[ll-s+1]],list(assignSubDend(node,dend,v)))
-        v.modifs.list[[ll-s+1]] <- c(v.modifs.list[[ll-s+1]], r)
-        Tau.modifs.list[[ll-s+1]] <- c(Tau.modifs.list[[ll-s+1]],list(constructTauTilde(assignSubDend(node,dend,v),Tau.hat)))
-        
-        # select the cluster formed last
-        k <- candidates[r]
-        al <- testInner(node,k,Tau.hat,Tau.hajek,M)
-        res.modifs.list[[ll-s+1]] <- c(res.modifs.list[[ll-s+1]], as.integer(al > alpha))
-        
-        if(al > alpha){
-          candidates[candidates > k] <- candidates[candidates > k] + length(node[[k]]) - 1
-          node <- unbranch(node,k)
-          attr(node,"delta") <- 1
-        }else{
-          break
+      if(delta == 1 & length(candidates) != 0){
+        candidates <- candidates[order(get_childrens_heights(node)[candidates],decreasing = T)]
+        for(r in seq_along(candidates)){
+          
+          dend.modifs.list[[ll-s+1]] <- c(dend.modifs.list[[ll-s+1]],list(assignSubDend(node,dend,v)))
+          v.modifs.list[[ll-s+1]] <- c(v.modifs.list[[ll-s+1]], r)
+          Tau.modifs.list[[ll-s+1]] <- c(Tau.modifs.list[[ll-s+1]],list(constructTauTilde(assignSubDend(node,dend,v),Tau.hat)))
+          
+          # select the cluster formed last
+          k <- candidates[r]
+          al <- testInner(node,k,Tau.hat,Tau.hajek,M)
+          res.modifs.list[[ll-s+1]] <- c(res.modifs.list[[ll-s+1]], as.integer(al > alpha))
+          
+          if(al > alpha){
+            candidates[candidates > k] <- candidates[candidates > k] + length(node[[k]]) - 1
+            node <- unbranch(node,k)
+            attr(node,"delta") <- 1
+          }else{
+            break
+          }
         }
+        
+        v.modifs.list[[ll-s+1]] <- candidates[v.modifs.list[[ll-s+1]]]
       }
-      
-      v.modifs.list[[ll-s+1]] <- candidates[v.modifs.list[[ll-s+1]]]
       dend <- assignSubDend(node,dend,v)
       vec.address <- getAddresses(dend)
       

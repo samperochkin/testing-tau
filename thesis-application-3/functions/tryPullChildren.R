@@ -3,7 +3,7 @@ tryPullChildren <- function(node, Tau.hat, Tau.hajek, M = 5000){
   # children that could be pulled
   candidates <- which(!sapply(node, is.leaf))
   candidates <- candidates[which(sapply(node[candidates], attr, which="delta")==1)]
-  if(length(candidates) == 0) candidates <- candidates[order(get_childrens_heights(node)[candidates],decreasing = T)]
+  if(length(candidates) != 0) candidates <- candidates[order(get_childrens_heights(node)[candidates],decreasing = T)]
 
   for(r in seq_along(candidates)){
   

@@ -107,3 +107,39 @@ ggsave(filename = paste0("ex_arbre.pdf"),
        height = 5)
 
 
+dend <- struc$dend
+labels(dend)
+labels(dend) <- 1:18
+source("thesis-application-3/example/graphNoLeg.R", encoding = "UTF-8")
+
+
+gg <- ggraph(mygraph, layout = 'dendrogram', circular = F) + 
+        geom_edge_diagonal(colour="black") +
+        geom_node_text(aes(x = x, y=y, filter = leaf, label=id1), alpha=1, vjust = 1.75) +
+        geom_node_text(aes(x = x, y=y, filter = !is.na(id2), label=id2), alpha=1,nudge_x = T, angle = 25) +
+        geom_node_point(aes(x = x, y=y, colour=delta, filter=leaf), size = 2, alpha = 1) +
+        geom_node_point(aes(x = x, y=y, colour=delta, filter = !leaf), size = 5, alpha = 1) +
+        theme_void() +
+        # theme(legend.text=element_text(size=15),
+        #       legend.title=element_text(size=15)) +
+        theme(legend.position = "none") +
+        guides(color = guide_legend(override.aes = list(size=5)), size = F) +
+        scale_color_manual(values = c("feuille" = pal2[1], "homogène" = pal2[2],
+                                      "hétérogène" = pal2[3], "indéfini" = pal2[4],
+                                      "validation" = pal2[5], "simplification" = pal2[6]),
+                           limits = c("feuille","homogène","hétérogène")) +
+        theme_void() +
+        theme(legend.text=element_text(size=15),
+              legend.title=element_text(size=15)) +
+        # theme(legend.position = c(.18,.87)) +
+        theme(legend.position = "left") +
+        guides(color = guide_legend(override.aes = list(size=5)), size = F)
+
+gg
+ggsave(filename = "arbre.pdf",
+       plot = gg,
+       device = "pdf",
+       width = 7,
+       height = 5)
+
+

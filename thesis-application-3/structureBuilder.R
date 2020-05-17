@@ -1,4 +1,4 @@
-structureBuilder <- function(X, hclust_method = "average", alpha = .05, M = 5000){
+structureBuilder <- function(X, hclust_method = "mcquitty", alpha = .05, M = 5000){
   
   library(pcaPP)
   library(dendextend)
@@ -18,12 +18,13 @@ structureBuilder <- function(X, hclust_method = "average", alpha = .05, M = 5000
   Tau.hat <- pcaPP::cor.fk(X)
   Tau.hajek <- constructTauHajek(X)
   
-  dend <- initializeDend(Tau.hat, method = hclust_method, doPlot=F)
+  dend <- initializeDend(Tau.hat, method = hclust_method, doPlot=F, noSR = T)
   vec.address <- getAddresses(dend)
 
   
   print("Loop")
   for(s in rev(seq_along(vec.address))){
+    print(s)
     v <- vec.address[[s]]
     
     node <- getSubDend(dend,v)

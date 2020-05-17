@@ -14,8 +14,8 @@ ggsave(filename = paste0("ex_arbre_",k,".pdf"),
 Thk <- struc$Tau.list[[k]]
 diag(Thk) <- 2
 pdf(file = paste0("ex_Th_",k,".pdf"),5,5)
-par(mar=c(0,0,0,0))
-image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
+        par(mar=c(0,0,0,0))
+        image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
 dev.off()
 
 
@@ -31,8 +31,10 @@ attr(dend[[v[-1]]],"delta") <- 1
 Thk <- constructTauTilde(dend,Tau.hat)
 diag(Thk) <- 2
 pdf(file = paste0("ex_Th_",k,"-star0.pdf"),5,5)
-par(mar=c(0,0,0,0))
-image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
+        par(mar=c(0,0,0,0))
+        image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
+        rect(ss[3],ss[1],ss[11],ss[9],lty=1,lwd=2)
+        rect(ss[3],ss[17],ss[11],ss[19],lty=1, lwd=2)
 dev.off()
 
 attr(dend[[v[length(v)]]],"delta") <- -2
@@ -47,8 +49,10 @@ ggsave(filename = paste0("ex_arbre_",k,"-star1.pdf"),
 Thk <- constructTauTilde(dend,Tau.hat)
 diag(Thk) <- 2
 pdf(file = paste0("ex_Th_",k,"-star1.pdf"),5,5)
-par(mar=c(0,0,0,0))
-image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
+        par(mar=c(0,0,0,0))
+        image(t(Thk[rev(oo),oo]), col = cols, zlim = c(-1,2), axes = F)
+        rect(ss[3],ss[1],ss[11],ss[9],lty=1,lwd=2)
+        rect(ss[3],ss[17],ss[11],ss[19],lty=1, lwd=2)
 dev.off()
 
 

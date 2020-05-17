@@ -15,6 +15,6 @@ simFunHigh2(n = c(150),
        distribution = c("normal"),
        num_sim = 2500,
        filename = "dt_main_high_2",
-       clus = c(rep(paste0("dms",1:2),4),rep(paste0("dms",3:8),3),rep(paste0("dms",11:12),8))
+       clus = c(rep(paste0("dms",1:2),4),rep(paste0("dms",3:10),3),rep(paste0("dms",11:12),8))
 )
 difftime(Sys.time(),tiime)

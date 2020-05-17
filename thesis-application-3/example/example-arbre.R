@@ -1,5 +1,8 @@
 pal2 <- c("#000000", "#009E73", "#D55E00")
-dend <- struc$dends[[3]]
+dend <- struc$dend
+
+# labels(dend)
+# labels(dend) <- 1:18
 
 
 vec.address <- getAddresses(dend)
@@ -21,7 +24,7 @@ type <- sapply(vec.address, function(v){
 
 type <- factor(type, levels = c("feuille","homogène","hétérogène"))
 
-tt <- constructTauTilde(dend, struc$Taus[[1]], return.single.values = T) 
+tt <- constructTauTilde(dend,Tau.hat = cor.fk(X),return.single.values = T)
 
 id1 <- sapply(vec.address, function(v){
   node <- getSubDend(dend,v)

@@ -64,3 +64,12 @@ for(s in seq_along(struc$dend.begin.list)){
   
 }
 
+
+count <- count+1
+dend <- struc$dend
+source("thesis-application-3/example/gifGraphSource.R", encoding = "UTF-8")
+ggsave(filename = paste0("arbre-",count,".pdf"),
+       plot = gg,
+       device = "pdf",
+       width = 7,
+       height = 5)
