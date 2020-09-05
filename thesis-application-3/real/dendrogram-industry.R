@@ -16,7 +16,7 @@ gg <- gg +
   theme_void() +
   theme(legend.text=element_text(size=14),
         legend.title=element_text(size=14),
-        legend.position = c(.85,.85)) +
+        legend.position = c(.85,.8)) +
   # guides(color = guide_legend(override.aes = list(size=3)), size = F) +
   scale_color_manual(values = pal[c(1,3,2)],
                      guide = guide_legend(title.position = "right",

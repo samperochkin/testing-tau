@@ -27,8 +27,8 @@ id2 <- rep(NA,length(id1))
 id2[is.na(id1)] <- to[is.na(id1)]
 
 # tick <- colnames(X)[as.numeric(id1)]
-# tick <- colnames(X)[as.numeric(id1)]
-tick <- id1
+tick <- colnames(X)[as.numeric(id1)]
+# tick <- id1
 
 sector <- sapply(tick, function(tick){
   if(is.na(tick)) return(NA)

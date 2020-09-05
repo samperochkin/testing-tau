@@ -1,7 +1,7 @@
 library(ggraph)
 library(igraph)
 
-invisible(sapply(list.files("thesis-application-3/functions/", full.names = T), source, local = environment()))
+invisible(sapply(list.files("thesis-application-3/double/functions/", full.names = T), source, local = environment()))
 
 
 true.labels <- labels(dend)
@@ -21,6 +21,7 @@ delta <- sapply(vec.address, function(v){
   # if(attr(node, "delta")==1) return("homogène")
   # if(attr(node, "delta")==0) return("hétérogène")
 })
+delta[delta==-2] <- 0
 delta <- factor(delta, levels = c(-1,0,1), labels = c("feuille","hétérogène","homogène"))
 tt <- constructTauTilde(dend, Tau.hat, return.single.values = T)
 id1 <- sapply(vec.address, function(v){
@@ -61,6 +62,7 @@ vertices <- data.table(name = to,
 maxlen <- max(sapply(vec.address,length))
 aa <- sapply(vec.address, function(v){
   a <- as.integer(paste0(v,collapse = ""))
+  print(a)
   a*10^(maxlen-length(v))
 })
 vertices <- vertices[order(aa),]
@@ -74,5 +76,12 @@ pal <- c("#000000", "#009E73", "#D55E00")
 
 d <- 100
 source("thesis-application-3/real/dendrogram-industry.R")
+
+gg
+ggsave(filename = paste0("flat-dend2.pdf"),
+       plot = gg,
+       device = "pdf",
+       width = 12,
+       height = 9)
 
 

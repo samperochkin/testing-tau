@@ -4,28 +4,10 @@ library(igraph)
 dend <- struc$dend
 plot(dend)
 
-# # RE-ORDERING
-# subdend <- dend
-# newO <- c(2,1,3)
-# for(k in seq_along(subdend)){
-#   dend[[k]] <- subdend[[newO[k]]]
-# }
-# 
-# 
-# subdend <- dend[[3]]
-# newO <- 1:8
-# sapply(subdend, attr, "members")
-# newO[c(1,2,3,5,7,8)] <- newO[c(1,3,5,2,8,1,7)]
-# for(k in seq_along(subdend)){
-#   dend[[c(3,k)]] <- subdend[[newO[k]]]
-# }
-# 
-# 
-
 Tau.hat <- pcaPP::cor.fk(X)
 d <- ncol(X)
 
-invisible(sapply(list.files("thesis-application-3/functions/", full.names = T), source, local = environment()))
+invisible(sapply(list.files("thesis-application-3/double/functions/", full.names = T), source, local = environment()))
 vec.address <- getAddresses(dend)
 
 to <- sapply(vec.address, function(v) paste0("(",paste0(v, collapse = ","),")"))
@@ -180,7 +162,7 @@ gg <- gg +
   theme_void() +
   theme(legend.text=element_text(size=14),
         legend.title=element_text(size=14),
-        legend.position = c(.8,.85)) +
+        legend.position = c(.12,.80)) +
   # guides(color = guide_legend(override.aes = list(size=3)), size = F) +
   scale_color_manual(values = pal[c(1,3,2)],
                      guide = guide_legend(title.position = "right",
@@ -193,9 +175,11 @@ gg <- gg +
 
 gg
 
-# pdf(file = "dend-flat-ind.pdf", width = 11, height = 9)
-# gg
-# dev.off()
+# pdf(file = "flat-dend-2.pdf", width = 12, height = 12)
+pdf(file = "C:/Users/Samuel/Dropbox/Papers/these-SP/figures-application/flat-dend-2.pdf",
+    width = 12, height = 9)
+gg
+dev.off()
 
 
 

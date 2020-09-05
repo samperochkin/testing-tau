@@ -20,8 +20,9 @@ pal <- wes_palette("Zissou1", 100, type = "continuous")
 image(t(Tau.hat[rev(oo),oo]), col = pal, zlim = c(-.2,1), axes = F)
 image(t(Tau.tilde[rev(oo),oo]), col = pal, zlim = c(-.2,1), axes = F)
 
-source("thesis-application-3/functions/constructTauTilde.R")
+source("thesis-application-3/double/functions/constructTauTilde.R")
 Tau.tilde <- constructTauTilde(dend,Tau.hat)
+
 
 
 par(mfrow = c(2,1), mar = c(.5,1,.5,1))

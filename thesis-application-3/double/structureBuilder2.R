@@ -28,10 +28,7 @@ structureBuilder <- function(X, hclust_method = "mcquitty", alpha0 = .05, alpha1
     node <- getSubDend(dend,v)
     if(is.leaf(node)) next
     
-    if(all(16:18 %in% as.numeric(labels(node))) & length(unlist(node)) > 3) break
-      # if(attr(node,"member") > 1) break
-
-    al <- testOuter(dend,v,Tau.hat,Tau.hajek,M=1000)
+    al <- testOuter(dend,v,Tau.hat,Tau.hajek,M=M)
     
     if(al > alpha0){ # SET DELTA AND TRY PULL UP
       
@@ -40,9 +37,9 @@ structureBuilder <- function(X, hclust_method = "mcquitty", alpha0 = .05, alpha1
       
       if(delta == 1){
         # if(length(unlist(node)) == 4) break
-        node <- tryPullChildren(node, Tau.hat, Tau.hajek, M = 1000, alpha1 = alpha1)
-        dend <- assignSubDend(node,dend,v)
+        node <- tryPullChildren(node, Tau.hat, Tau.hajek, M = M, alpha1 = alpha1)
       }
+      dend <- assignSubDend(node,dend,v)
       vec.address <- getAddresses(dend)
       
     }else{ # BREAK STRUCTURE AND PUSH UP
