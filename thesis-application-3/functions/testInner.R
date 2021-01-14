@@ -1,22 +1,24 @@
-testInner <- function(node, k, Tau.hat, Tau.hajek, M = 2000){
+testInner <- function(node, k, Tau.hat, Tau.hajek, M = 5000){
   
+  if(length(v) == 1) return(1)
   n <- length(Tau.hajek)
   
-  node.temp <- unbranch(node,k)
-  inds <- lapply(node.temp, get_leaves_attr, attribute="label")
+  node.star <- unbranch(node,k)
+  T.dag <- getTauDag(node.star,Tau.hat)
   
-  kks <- t(combn(length(inds),2))
-  tbs <- apply(kks,1,function(kk) mean(Tau.hat[inds[[kk[1]]],inds[[kk[2]]]]))
-  t.diff <- tbs - mean(tbs)
+  rs <- t(combn(length(node.star),2))
   
-  t.diffs <- sapply(Tau.hajek, function(T.haj){
-    tbs <- apply(kks,1,function(kk) mean(T.haj[inds[[kk[1]]],inds[[kk[2]]]]))
-    tbs - mean(tbs)
+  tt0 <- c(T.dag[rs])
+  tt0 <- tt0 - mean(tt0)
+  
+  tts <- lapply(Tau.hajek, function(Th) getTauDag(node.star,Th)[rs])
+  tt.hajek <- sapply(tts, function(tt){
+    (tt - mean(tt))/(n*(n-1)) - tt0/n
   })
   
-  BOOTsup <- replicate(M, {
-    sqrt(n)*max(abs((t.diffs/(n*(n-1)) - t.diff/n) %*% rnorm(n)))
+  boot <- replicate(M, {
+    sqrt(n)*max(abs(tt.hajek %*% rnorm(n)))
   })
   
-  mean(BOOTsup > sqrt(n)*max(abs(t.diff)))
+  mean(boot > sqrt(n)*max(abs(tt0)))
 }

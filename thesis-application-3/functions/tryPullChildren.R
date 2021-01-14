@@ -1,4 +1,4 @@
-tryPullChildren <- function(node, Tau.hat, Tau.hajek, M = 5000){
+tryPullChildren <- function(node, Tau.hat, Tau.hajek, M = 5000, alpha1 = .05){
   
   # children that could be pulled
   candidates <- which(!sapply(node, is.leaf))
@@ -11,7 +11,7 @@ tryPullChildren <- function(node, Tau.hat, Tau.hajek, M = 5000){
     k <- candidates[r]
     al <- testInner(node,k,Tau.hat,Tau.hajek,M)
   
-    if(al > alpha){
+    if(al > alpha1){
       candidates[candidates > k] <- candidates[candidates > k] + length(node[[k]])
       node <- unbranch(node,k)
       attr(node,"delta") <- 1

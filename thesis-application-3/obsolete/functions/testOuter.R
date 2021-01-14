@@ -5,17 +5,15 @@ testOuter <- function(dend, v, Tau.hat, Tau.hajek, M = 5000){
   
   node <- getSubDend(dend,v)
   dend.star <- validify(dend)
-  T.dag <- getTauDag(dend.star,Tau.hat)
+  dend.comp <- prune(dend.star, leaves = as.character(unlist(node)), reindex_dend = F)
   
-  gs <- sapply(dend.star, function(nn){labels(nn)[1]})
-  ks <- which(gs %in% labels(node))
-  Tt0 <- T.dag[-ks,ks,drop=F]
-  
+  W <- constructW(dend.star)
+  Tt0 <- ConstructTt(node,dend.comp,W,Tau.hat)
   tt0 <- c(Tt0 - rowMeans(Tt0))
 
   
-  Tts <- lapply(Tau.hajek, function(Th) getTauDag(dend.star,Th)[-ks,ks,drop=F])
-  tt.hajek <- sapply(Tts, function(Tt){
+  Tt.hajek <- lapply(Tau.hajek, ConstructTt, node=node,dend.comp=dend.comp,W=W)
+  tt.hajek <- sapply(Tt.hajek, function(Tt){
     c(Tt - rowMeans(Tt))/(n*(n-1)) - tt0/n
   })
   
