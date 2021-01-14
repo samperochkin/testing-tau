@@ -3,3 +3,6 @@
 *.csv
 *.rds
 .Rhistory
+
+# To keep private
+archive/
