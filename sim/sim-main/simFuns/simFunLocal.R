@@ -5,7 +5,7 @@
 # distribution="normal"
 # num_sim = 2
 
-simFunLocal <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", num_sim = 250, filename = "resLocal", cores = 1){
+simFunLocal <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", num.sim = 250, filename = "resLocal", cores = 1){
   
   # packages
   library(parallel)
