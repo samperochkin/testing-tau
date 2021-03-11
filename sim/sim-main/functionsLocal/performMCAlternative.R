@@ -9,4 +9,12 @@ performMCAlternative <- function(loss, S.star, norm, M, epsilon.vec, take.square
   
   if(norm == "Euclidean") return(mean(apply(matrix(rnorm(M*p,0,1),M,p) %*% t(S.star) + matrix(epsilon.vec, nrow=M, ncol=p, byrow=T),1,crossprod) > loss))
   if(norm == "Supremum") return(mean(apply(abs(matrix(rnorm(M*p,0,1),M,p) %*% t(S.star) + matrix(epsilon.vec, nrow=M, ncol=p, byrow=T)),1,max) > loss))
+  
+  # other way around
+  # if(norm == "Euclidean") return(mean(apply(matrix(rnorm(M*p,0,1),M,p) %*% t(S.star) + matrix(epsilon.vec, nrow=M, ncol=p, byrow=T),1,crossprod) > loss))
+  # if(norm == "Supremum") return(mean(apply(abs(t(S.star) %*% matrix(rnorm(M*p,0,1),p,M) + epsilon.vec),2,max) > loss))
+  
+  # no epsilon.vec
+  # if(norm == "Euclidean") return(mean(apply(matrix(rnorm(M*p,0,1),M,p) %*% t(S.star),1,crossprod) > loss))
+  # if(norm == "Supremum") return(mean(apply(abs(matrix(rnorm(M*p,0,1),M,p) %*% t(S.star)),1,max) > loss))
 }

@@ -1,4 +1,4 @@
-performTestsAlternative <- function(X, epsilon.vec, M){
+performTestsAlternative2 <- function(X, epsilon, epsilon.vec, M){
   n <- nrow(X)
   d <- ncol(X)
   p <- d*(d-1)/2
@@ -15,18 +15,18 @@ performTestsAlternative <- function(X, epsilon.vec, M){
   #                 computeSigmaJackknife(HP, ij.mat, T, l.mat))
   # Sigma.hats <- c(computeSigmaPlugin(X, ij.mat, tau.hat),
   #                 computeSigmaJackknife(HP, ij.mat))
-  # Sigma.hats <- computeSigmaJackknife(HP, ij.mat, T, l.mat)
-  Sigma.hats <- computeSigmaPlugin(X, ij.mat, tau.hat)
+  Sigma.hats <- computeSigmaJackknife(HP, ij.mat, T, l.mat)
   
   B <- rep(1,p)
+  Bn <- B
+  Bn[1] <- B[1] + epsilon/sqrt(n)
   IBB <- diag(p) - matrix(1/p,p,p)
+  IBBn <- diag(p) - tcrossprod(Bn,Bn)/c(crossprod(Bn,Bn))
   
   tt <- sqrt(n)*c(IBB %*% tau.hat)
   loE <- c(crossprod(tt))
   loM <- max(abs(tt))
   
-  ########### WAAAAAATCH OUT #############
-  epsilon.vec <- epsilon*mean(tau.hat)/p * c(p-1,rep(-1,p-1))
   
   do.call(rbind, lapply(names(Sigma.hats), function(nn){
     
@@ -55,7 +55,8 @@ performTestsAlternative <- function(X, epsilon.vec, M){
       Shi <- eig$vectors[,keep] %*% diag(1/eig$values[keep]) %*% t(eig$vectors[,keep])
       Shi2 <- eig$vectors[,keep] %*% diag(1/sqrt(eig$values[keep])) %*% t(eig$vectors[,keep])
       
-      SI.star2 <- IBB %*% Sh2 
+      # SI.star2 <- IBB %*% Sh2
+      SI.star2 <- IBBn %*% Sh2
       IG <- diag(p)- matrix(colSums(Shi),p,p,byrow=T)/sum(Shi)
       SSh.star <- Shi2 %*% IG %*% Sh2
       
