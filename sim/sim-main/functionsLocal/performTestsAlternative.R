@@ -1,4 +1,4 @@
-performTestsAlternative <- function(X, epsilon.vec, M){
+performTestsAlternative <- function(X, epsilon, M){
   n <- nrow(X)
   d <- ncol(X)
   p <- d*(d-1)/2
