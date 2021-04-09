@@ -16,12 +16,17 @@ performTestsAlternative2 <- function(X, epsilon, epsilon.vec, M){
   # Sigma.hats <- c(computeSigmaPlugin(X, ij.mat, tau.hat),
   #                 computeSigmaJackknife(HP, ij.mat))
   Sigma.hats <- computeSigmaJackknife(HP, ij.mat, T, l.mat)
-  
+
   B <- rep(1,p)
   Bn <- B
   Bn[1] <- B[1] + epsilon/sqrt(n)
+  BBn <- tcrossprod(Bn,Bn)/c(crossprod(Bn,Bn))
+  
   IBB <- diag(p) - matrix(1/p,p,p)
-  IBBn <- diag(p) - tcrossprod(Bn,Bn)/c(crossprod(Bn,Bn))
+  IBBn <- diag(p) - BBn
+  
+  beta <- (BBn %*% tau.hat)[2]
+  epsilon.vec <- epsilon*beta/p * c(p-1,rep(-1,p-1))
   
   tt <- sqrt(n)*c(IBB %*% tau.hat)
   loE <- c(crossprod(tt))
@@ -62,11 +67,11 @@ performTestsAlternative2 <- function(X, epsilon, epsilon.vec, M){
       
       
       #### E -- S=I -- MC
-      pv <- performMCAlternative(loE,SI.star2,"Euclidean",M,epsilon.vec,F)
+      pv <- performMCAlternative2(loE,SI.star2,"Euclidean",M,epsilon.vec,F)
       resTable[1, "pvalue" := pv]
       
       #### M -- S=I -- MC
-      pv <- performMCAlternative(loM,SI.star2,"Supremum",M,epsilon.vec,F)
+      pv <- performMCAlternative2(loM,SI.star2,"Supremum",M,epsilon.vec,F)
       resTable[2, "pvalue" := pv]
       
     }

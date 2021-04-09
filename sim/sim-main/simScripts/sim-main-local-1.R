@@ -5,18 +5,18 @@ setwd("sim/sim-main")
 library(data.table)
 
 # functions ---------------------------------------------------------------
-source("simFuns/simFunLocal.R")
+source("simFuns/simFunLocal3.R")
 
 # procedure ---------------------------------------------------------------
 
 tiime <- Sys.time()
-simFunLocal(n = c(100,250,400),
-          d = c(3),
-          tau = c(.2,.4,.6),
-          epsilon = c(.1,.3,.5),
+simFunLocal3(n = c(100,300),
+          d = c(4),
+          tau = c(.25),
+          epsilon = c(.5,1.5),
           distribution = c("normal"),
           num.sim = 1000,
-          filename = "dt_main_local_2",
-          cores = 12
+          filename = "dt_main_local_5",
+          cores = 8
 )
 difftime(Sys.time(),tiime)

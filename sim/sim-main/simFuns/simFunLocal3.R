@@ -5,7 +5,7 @@
 # distribution="normal"
 # num_sim = 2
 
-simFunLocal2 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", num.sim = 250, filename = "resLocal", cores = 1){
+simFunLocal3 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", num.sim = 250, filename = "resLocal", cores = 1){
   
   # packages
   library(parallel)
@@ -31,9 +31,11 @@ simFunLocal2 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", 
     distribution <- sim.grid[r,]$distribution
     M <- sim.grid[r,]$M
     
-    X <- generateData(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
+    # Note that we do not generate data exectly the same way as for the "regular" simulation study
+    X <- generateData2(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
     
-    cbind(sim.grid[r,],performTestsAlternative3(X,epsilon,M=M,dtau_type=dtau_type))
+    cbind(sim.grid[r,],performTestsAlternativeOracle(X=X,epsilon=epsilon,tau=tau,
+                                                     M=M, dtau_type=dtau_type))
   }, mc.cores = cores))
   
   fwrite(res, paste0(filename,".csv"))
