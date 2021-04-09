@@ -1,9 +1,9 @@
-# n=100
-# d=10
-# tau=.5
-# epsilon=1
+# n=600
+# d=3
+# tau=.25
+# epsilon=.5
 # distribution="normal"
-# num_sim = 2
+# num.sim = 2
 
 simFunLocal3 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", num.sim = 250, filename = "resLocal", cores = 1){
   
@@ -15,7 +15,6 @@ simFunLocal3 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", 
   
   # create a parameter grid
   sim.grid <- createGrid(n, d, tau, epsilon, distribution, num.sim)
-  sim.grid <- sim.grid[dtau_type == "single"]
   sim.grid$M <- 2500
   
   # for parallel stuff

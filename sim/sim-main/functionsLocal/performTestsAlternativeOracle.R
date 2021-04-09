@@ -76,18 +76,20 @@ performTestsAlternativeOracle <- function(X, epsilon, tau, M, dtau_type){
       
       
       # S = Sh ------------------------------------------------
-      tt2 <- sqrt(n)*c(IG %*% tau.hat)
-      loE2 <- c(crossprod(tt2))
-      loM2 <- max(abs(tt2))
-      
       G <- matrix(colSums(Shi),p,p,byrow=T)/sum(Shi)
       IG <- diag(p) - G
-      SSh.star <- Shi2 %*% IG %*% Sh2
+
+      tt2 <- sqrt(n)*c(Shi2 %*% IG %*% tau.hat)
+      loE2 <- c(crossprod(tt2))
+      loM2 <- max(abs(tt2))
+      resTable[3:4, "loss" := c(loE2,loM2)]
       
+      SSh.star <- Shi2 %*% IG %*% Sh2
+
       # bias term
       if(dtau_type == "single"){
         s1 <- sum(Shi)/n; s2 <- sum(Shi[,1])/n
-        P <- matrix(0,d,d)
+        P <- matrix(0,p,p)
         P[1,1] <- 2*(s1 - s2)
         P[-1,1] <- P[1,-1] <- s1 - 2*s2
         P[-1,-1] <- -2*s2
@@ -95,7 +97,7 @@ performTestsAlternativeOracle <- function(X, epsilon, tau, M, dtau_type){
       }
       if(dtau_type == "column"){
         s1 <- sum(Shi)/n; s2 <- sum(Shi[,1:(d-1)])/n
-        P <- matrix(0,d,d)
+        P <- matrix(0,p,p)
         P[1:(d-1),1:(d-1)] <- 2*(s1 - s2)
         P[-(1:(d-1)),(1:(d-1))] <- P[(1:(d-1)),-(1:(d-1))] <- s1 - 2*s2
         P[-(1:(d-1)),-(1:(d-1))] <- -2*s2
@@ -104,14 +106,14 @@ performTestsAlternativeOracle <- function(X, epsilon, tau, M, dtau_type){
       }
       
       # same here: we use tau directly, but Sh is estimated
-      epsilon.vec2 <- tau * Shi2/sqrt(n) %*% rowSums(P)
+      epsilon.vec2 <- tau * (Shi2/sqrt(n)) %*% rowSums(P)
       
       #### E -- S=Sh -- MC
-      pv <- performMCAlternative(loE2,SI.star2,"Euclidean",M,epsilon.vec2,F)
+      pv <- performMCAlternative(loE2,SSh.star,"Euclidean",M,epsilon.vec2,F)
       resTable[3, "pvalue" := pv]
       
       #### M -- S=Sh -- MC
-      pv <- performMCAlternative(loM2,SI.star2,"Supremum",M,epsilon.vec2,F)
+      pv <- performMCAlternative(loM2,SSh.star,"Supremum",M,epsilon.vec2,F)
       resTable[4, "pvalue" := pv]
     }
     
