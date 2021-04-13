@@ -27,19 +27,19 @@ Type 'q()' to quit R.
 > # procedure ---------------------------------------------------------------
 > 
 > tiime <- Sys.time()
-> simFunLocal3(n = c(100,250,400),
+> simFunLocal3(n = c(400),
 +           d = c(5,10),
-+           tau = c(.25,.5),
-+           epsilon = c(.5,1,1.5),
++           tau = c(.25),
++           epsilon = c(5,10),
 +           distribution = c("normal"),
 +           num.sim = 1000,
-+           filename = "dt_main_local_6",
++           filename = "dt_main_local_8",
 +           cores = 8
 + )
 NULL
 > difftime(Sys.time(),tiime)
-Time difference of 4.396267 hours
+Time difference of 54.7027 mins
 > 
 > proc.time()
-      user     system    elapsed 
-120753.415    174.414  15826.938 
+     user    system   elapsed 
+25329.628    66.796  3282.459 

@@ -62,7 +62,7 @@ performTestsAlternativeOracle <- function(X, epsilon, tau, M, dtau_type){
         # epsilon <- -epsilon for the column departure
         epsilon.vec <- -epsilon*tau/p^2 *
           c(rep( (d-1)*2*(s1-s2) + (p-d+1)*(s1-2*s2), d-1),
-            rep( (d-1)*(s1-2*s2) + (p-d+1)*(-2)*s1, p-d+1))
+            rep( (d-1)*(s1-2*s2) + (p-d+1)*(-2)*s2, p-d+1))
       }
       
       #### E -- S=I -- MC
@@ -88,25 +88,25 @@ performTestsAlternativeOracle <- function(X, epsilon, tau, M, dtau_type){
 
       # bias term
       if(dtau_type == "single"){
-        s1 <- sum(Shi)/n; s2 <- sum(Shi[,1])/n
+        s1 <- sum(Shi); s2 <- sum(Shi[,1])
         P <- matrix(0,p,p)
         P[1,1] <- 2*(s1 - s2)
         P[-1,1] <- P[1,-1] <- s1 - 2*s2
         P[-1,-1] <- -2*s2
-        P <- epsilon/s1^2 * P %*% Shi/n
+        P <- epsilon/s1^2 * P %*% Shi
       }
       if(dtau_type == "column"){
-        s1 <- sum(Shi)/n; s2 <- sum(Shi[,1:(d-1)])/n
+        s1 <- sum(Shi); s2 <- sum(Shi[,1:(d-1)])
         P <- matrix(0,p,p)
         P[1:(d-1),1:(d-1)] <- 2*(s1 - s2)
         P[-(1:(d-1)),(1:(d-1))] <- P[(1:(d-1)),-(1:(d-1))] <- s1 - 2*s2
         P[-(1:(d-1)),-(1:(d-1))] <- -2*s2
         # epsilon <- -epsilon for the column departure
-        P <- -epsilon/s1^2 * P %*% Shi/n
+        P <- -epsilon/s1^2 * P %*% Shi
       }
       
       # same here: we use tau directly, but Sh is estimated
-      epsilon.vec2 <- tau * (Shi2/sqrt(n)) %*% rowSums(P)
+      epsilon.vec2 <- tau * Shi2 %*% rowSums(P)
       
       #### E -- S=Sh -- MC
       pv <- performMCAlternative(loE2,SSh.star,"Euclidean",M,epsilon.vec2,F)

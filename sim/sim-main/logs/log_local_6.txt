@@ -38,8 +38,8 @@ Type 'q()' to quit R.
 + )
 NULL
 > difftime(Sys.time(),tiime)
-Time difference of 4.396267 hours
+Time difference of 4.322375 hours
 > 
 > proc.time()
       user     system    elapsed 
-120753.415    174.414  15826.938 
+120846.203    145.847  15560.836 
