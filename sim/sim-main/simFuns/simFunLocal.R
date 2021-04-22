@@ -31,7 +31,7 @@ simFunLocal <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", n
     distribution <- sim.grid[r,]$distribution
     M <- sim.grid[r,]$M
     
-    X <- generateData(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
+    X <- generateData2(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
     
     # bias term
     epsilon.vec <- epsilon*tau/p * c(p-1,rep(-1,p-1))
