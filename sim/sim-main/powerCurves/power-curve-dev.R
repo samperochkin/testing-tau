@@ -12,6 +12,7 @@ library(parallel)
 
 
 #*************** IMPORTANT TUNING PARAMETER
+run.id <- 1 
 large.n <- 10000 # for asymptotic results..
 M <- 5000
 
@@ -19,21 +20,24 @@ M <- 5000
 ################
 # distribution #
 ################
-# d <- c(5,15,25)
-d <- 5
-# tau <- c(0,.25,.5,.75)
-tau <- .25
-# distribution <- c("normal","cauchy","clayton")
-distribution <- c("normal")
+d <- c(5,25,50)
+# d <- 5
+tau <- c(0,.25,.5,.75)
+# tau <- .25
+distribution <- c("normal","cauchy","joe")
+# distribution <- c("normal")
 
-distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau, d=d))
-distribution.grid[,distribution_id := 1:nrow(distribution.grid)]
+distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
+distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
+distribution.grid <- as.data.table(merge.data.frame(distribution.grid, data.frame(d=d), all=T))
+distribution.grid[, Sigma_id := 1:nrow(distribution.grid)]
+distribution.grid[, distribution_id := 1:nrow(distribution.grid)]
 
 
 #############
 # departure #
 #############
-epsilon <- seq(0,8,.1)
+epsilon <- seq(0,10,.1)
 dtau_type <- c("single", "column")
 
 departure.grid <- as.data.table(expand.grid(dtau_type=dtau_type, epsilon=epsilon))
@@ -43,8 +47,6 @@ departure.grid[, departure_id := 1:nrow(departure.grid)]
 ###################
 # test statistics #
 ###################
-# Sh <- c("ShJ", "SbJ")
-Sh <- "ShJ"
 S <- c("I", "Sh")
 norm = c("Euclidean", "Supremum")
 
@@ -64,28 +66,57 @@ full.grid <- as.data.table(full.grid)
 # Estimation of Sigma (under H0) ------------------------------------------
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
-N <- 10000
 
-full.grid[, Sigma_id := distribution_id]
-# Note that we compute only "ShJ" here, not yet generalized to more choices
-Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
+N <- 10000
+sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
+
+if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
+  sigma.list <- mclapply(1:nrow(sigma.grid), function(i){
+    
+    d <- 10
+    ij.mat <- t(combn(d,2))
+    l.mat <- matrix(0,d,d)
+    l.mat[ij.mat] <- l.mat[ij.mat[,2:1]] <- 1:nrow(ij.mat)
+    
+    Sh <- large.n*cov(t(replicate(N,{
+      X <- generateData(n=large.n,
+                        d=d,
+                        tau=sigma.grid[i,]$tau,
+                        dtau=0,
+                        dtau_type="none",
+                        distribution=sigma.grid[i,]$distribution)
+      
+      cor.fk(X)[ij.mat]
+    })))
+    sb <- averageSigma(Sh, l.mat, full=F)
+    
+    return(sb)
+  }, mc.cores = 6)
+  saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
+}else{
+  sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
+}
+
+
+# Function for constructing Sigma out of 3d sigma -------------------------
+expandSigma <- function(sb, d){
   
-  d <- distribution.grid[i,]$d
+  p <- choose(d,2)
   ij.mat <- t(combn(d,2))
   l.mat <- matrix(0,d,d)
   l.mat[ij.mat] <- l.mat[ij.mat[,2:1]] <- 1:nrow(ij.mat)
   
-  Sh <- large.n*cov(t(replicate(N,{
-    X <- generateData(n=large.n,
-                      d=d,
-                      tau=distribution.grid[i,]$tau,
-                      dtau=distribution.grid[i,]$dtau,
-                      dtau_type="none",
-                      distribution=distribution.grid[i,]$distribution)
-    
-    cor.fk(X)[ij.mat]
-  })))
-  Sb <- averageSigma(Sh, l.mat, full=T)
+  Sb <- matrix(0,p,p)
+  
+  B <- Matrix::Matrix(0, nrow = p, ncol = d, sparse = T)
+  for(i in 1:d){
+    B[l.mat[i,-i],i] <- 1
+  }
+  BtB <- Matrix::tcrossprod(B)
+  
+  for(k in 0:2){
+    Sb[Matrix::which(BtB == k)] <- sb[k+1]
+  }
   
   eig <- eigen(Sb, symmetric = T)
   Sh2 <- eig$vectors %*% diag(sqrt(eig$values)) %*% t(eig$vectors)
@@ -93,40 +124,45 @@ Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
   Shi2 <- eig$vectors %*% diag(1/sqrt(eig$values)) %*% t(eig$vectors)
   
   return(list(Sigma = Sb, Sigma2 = Sh2, SigmaI = Shi, SigmaI2 = Shi2))
-})
+}
 
-
-
+if(!file.exists(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))){
+  Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
+    expandSigma(sigma.list[[distribution.grid[i]$sigma_id]],distribution.grid[i]$d)
+  }, mc.cores = 6)
+  saveRDS(Sigma.list, paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
+}else{
+  Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
+}
+  
 
 
 # Computation of S.star ---------------------------------------------------
 S.star.grid <- as.data.table(expand.grid(distribution_id = distribution.grid$distribution_id,
                                          S = unique(stat.grid$S)))
-S.star.grid[,Sigma_id := distribution_id] # for clarity
-S.star.grid[,S_star_id := 1:nrow(S.star.grid)]
-full.grid <- merge(full.grid, S.star.grid, by=c("distribution_id", "S", "Sigma_id"))
+S.star.grid[, Sigma_id := distribution_id]
+S.star.grid[, S_star_id := 1:nrow(S.star.grid)]
+full.grid <- merge(full.grid, S.star.grid, by=c("distribution_id", "S"))
 
-# S.star for computing rejection threshold AND power curves
 S.star.list <- lapply(1:nrow(S.star.grid), function(i){
   
+  # get relevant quantities
+  d_id <- S.star.grid[i]$distribution_id
+
+  d <- distribution.grid[distribution_id == d_id,]$d
   # Define (pre-specified) hypothesis
   p <- choose(d,2)
   B <- matrix(1,p,1)
   
-  # get relevant quantities
-  d_id <- S.star.grid[i]$distribution_id
-  Sigma_id <- S.star.grid[i]$Sigma_id
+  Sigma2 <- Sigma.list[[d_id]]$Sigma2
   
-  d <- distribution.grid[distribution_id == d_id,]$d
-  Sigma2 <- Sigma.list[[Sigma_id]]$Sigma2
-
   S <- S.star.grid[i]$S
   if(S == "I"){
     S <- Si <- Si2 <- diag(p)
   }else if(S == "Sh"){
-    S <- Sigma.list[[Sigma_id]]$Sigma
-    Si <- Sigma.list[[Sigma_id]]$SigmaI
-    Si2 <- Sigma.list[[Sigma_id]]$SigmaI2
+    S <- Sigma.list[[d_id]]$Sigma
+    Si <- Sigma.list[[d_id]]$SigmaI
+    Si2 <- Sigma.list[[d_id]]$SigmaI2
   }
   
   # Compute S.star
@@ -144,19 +180,19 @@ quantiles.grid[,quantiles_id := 1:nrow(quantiles.grid)]
 full.grid <- merge(full.grid, quantiles.grid, by=c("S_star_id", "norm"))
 
 # Function for approximating quantiles of the null distribution
-generateMCQuantile <- function(S.star, norm, M = 10000, probs = c(.9,.95,.975,.99,.995,.999)){
+generateMCQuantile <- function(S.star, norm, Mq = M, probs = c(.9,.95,.975,.99,.995,.999)){
   p <- ncol(S.star)
-  Z <- matrix(rnorm(M*p,0,1),M,p) %*% t(S.star)
+  Z <- matrix(rnorm(Mq*p,0,1),Mq,p) %*% t(S.star)
   
   if(norm == "Euclidean") norm_Z <- apply(Z,1,crossprod)
   if(norm == "Supremum") norm_Z <- apply(abs(Z),1,max)
-    
+  
   return(quantiles = quantile(norm_Z, probs = probs))
 }
 
-quantiles.list <- lapply(1:nrow(quantiles.grid), function(i){
+quantiles.list <- mclapply(1:nrow(quantiles.grid), function(i){
   generateMCQuantile(S.star = S.star.list[[quantiles.grid[i]$S_star_id]], norm = quantiles.grid[i]$norm)
-})
+}, mc.cores = 6)
 
 
 # Computation of drift term -----------------------------------------------
@@ -197,7 +233,7 @@ zeta1.list <- lapply(1:nrow(zeta1.grid), function(i){
     Si <- SigmaI
     Si2 <- SigmaI2
   }
-
+  
   if(dtau_type == "single") dep_set <- 1
   if(dtau_type == "column") dep_set <- 1:(d-1)
   a <- sum(Si)
@@ -212,7 +248,8 @@ zeta1.list <- lapply(1:nrow(zeta1.grid), function(i){
   return(zeta1)
 })
 
-
+# not needed anymore
+rm(Sigma.list)
 
 # Compute power curves ----------------------------------------------------
 
@@ -220,9 +257,8 @@ power.grid <- merge(S.star.grid,
                     zeta1.grid,
                     by = c("S", "Sigma_id"))
 
-dev <- lapply(1:nrow(power.grid), function(i){
-  print(i)
-  
+powers <- mclapply(1:nrow(power.grid), function(i){
+
   power.line <- power.grid[i]
   
   S_star_id <- power.line$S_star_id
@@ -231,7 +267,7 @@ dev <- lapply(1:nrow(power.grid), function(i){
   
   zeta1_id <- power.line$zeta1_id
   zeta1 <- zeta1.list[[zeta1_id]]
-
+  
   Z <- matrix(rnorm(M*p,0,1),M,p) %*% t(S.star)
   
   # new power grid
@@ -255,48 +291,59 @@ dev <- lapply(1:nrow(power.grid), function(i){
     
     sapply(quantiles[[new.power.grid[2]$norm]], function(z) mean(Z_norm > z))
   })
-
+  
   res.grid <- as.data.table(expand.grid(
-              alpha = 1 - as.numeric(gsub("%","",names(quantiles[[1]])))/100,
-              epsilon = epsilon,
-              norm = new.power.grid$norm))
+    alpha = 1 - as.numeric(gsub("%","",names(quantiles[[1]])))/100,
+    epsilon = epsilon,
+    norm = new.power.grid$norm))
   res.grid[,power := unlist(c(power1,power2))]
   merge(res.grid, new.power.grid, by = "norm")
-})
+}, mc.cores = 6)
 
 
+powers <- rbindlist(powers)
+full.grid <- merge(full.grid, powers, by=intersect(names(full.grid),names(powers)))
 
-dev <- rbindlist(dev)
-full.grid <- merge(full.grid, dev, by=intersect(names(full.grid),names(dev)))
+fwrite(full.grid, paste0("sim/sim-main/powerCurves/full_grid_",run.id,".csv"))
 
-
-library(ggplot2)
-al <- .1
-ggplot(full.grid[round(alpha,3)==al], aes(x=epsilon, y=power, col=norm)) + 
-  theme_light() +
-  geom_line() + 
-  geom_hline(yintercept=al, lty=2) +
-  ylim(c(0,1)) +
-  facet_wrap(~zeta1_id)
-
-ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-  theme_light() +
-  geom_line() + 
-  ylim(c(0,1)) +
-  facet_wrap(~zeta1_id)
-
-ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-  theme_light() +
-  geom_line() + 
-  xlim(c(0,1)) +
-  ylim(c(0,.05)) +
-  facet_wrap(~zeta1_id)
-ggplot(full.grid[norm == "Supremum"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-  theme_light() +
-  geom_line() + 
-  xlim(c(0,.31)) +
-  ylim(c(0,.125)) +
-  facet_wrap(~zeta1_id)
-
-
-hist(full.grid[epsilon == 0, (alpha - power)/alpha])
+# library(ggplot2)
+# al <- .1
+# ggplot(full.grid[round(alpha,3)==al], aes(x=epsilon, y=power, col=norm)) + 
+#   theme_light() +
+#   geom_line() + 
+#   geom_hline(yintercept=al, lty=2) +
+#   ylim(c(0,1)) +
+#   facet_wrap(~zeta1_id)
+# 
+# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   ylim(c(0,1)) +
+#   facet_wrap(~zeta1_id)
+# 
+# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   xlim(c(0,1)) +
+#   ylim(c(0,.05)) +
+#   facet_wrap(~zeta1_id)
+# ggplot(full.grid[norm == "Supremum"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   xlim(c(0,.31)) +
+#   ylim(c(0,.125)) +
+#   facet_wrap(~zeta1_id)
+# 
+# 
+# hist(full.grid[epsilon == 0, (alpha - power)/alpha])
+# 
+# 
+# 
+# al <- .1
+# ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "normal"],
+#        aes(x=epsilon, y=power, col=norm, linetype=S)) + 
+#   theme_light() +
+#   geom_line() + 
+#   geom_hline(yintercept=al, lty=2) +
+#   ylim(c(0,1)) +
+#   facet_wrap(d~tau)
