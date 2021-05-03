@@ -1,0 +1,115 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> 
+> # Packages ----------------------------------------------------------------
+> 
+> library(data.table)
+> library(mvtnorm)
+> library(HAC)
+Loading required package: copula
+> library(pcaPP)
+> library(parallel)
+> 
+> # Setup -------------------------------------------------------------------
+> 
+> 
+> #*************** IMPORTANT TUNING PARAMETER
+> run.id <- 3
+> large.n <- 50000 # for asymptotic results..
+> M <- 5000
+> 
+> 
+> ################
+> # distribution #
+> ################
+> d <- c(10)
+> tau <- c(.5)
+> distribution <- c("cauchy")
+> 
+> distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
+> distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
+> distribution.grid <- as.data.table(merge.data.frame(distribution.grid, data.frame(d=d), all=T))
+> distribution.grid[, Sigma_id := 1:nrow(distribution.grid)]
+> distribution.grid[, distribution_id := 1:nrow(distribution.grid)]
+> 
+> 
+> #############
+> # departure #
+> #############
+> epsilon <- seq(0,10,.1)
+> dtau_type <- c("single", "column")
+> 
+> departure.grid <- as.data.table(expand.grid(dtau_type=dtau_type, epsilon=epsilon))
+> departure.grid[, departure_id := 1:nrow(departure.grid)]
+> 
+> 
+> ###################
+> # test statistics #
+> ###################
+> S <- c("I", "Sh")
+> norm = c("Euclidean", "Supremum")
+> 
+> stat.grid <- as.data.table(expand.grid(S=S, norm=norm))
+> stat.grid[,stat_id := 1:nrow(stat.grid)]
+> 
+> 
+> ##############
+> # FULL TABLE #
+> ##############
+> 
+> full.grid <- Reduce(function(x,y) merge.data.frame(x, y, all=T),
++                     list(distribution.grid,departure.grid,stat.grid))
+> full.grid <- as.data.table(full.grid)
+> 
+> 
+> # Estimation of Sigma (under H0) ------------------------------------------
+> source("sim/sim-main/functionsLow2/generateData.R")
+> source("sim/sim-main/functionsLow2/averageSigma.R")
+> 
+> N <- 50000
+> sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
+> 
+> if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
++   sigma.list <- mclapply(1:nrow(sigma.grid), function(i){
++     
++     d <- 10
++     ij.mat <- t(combn(d,2))
++     l.mat <- matrix(0,d,d)
++     l.mat[ij.mat] <- l.mat[ij.mat[,2:1]] <- 1:nrow(ij.mat)
++     
++     Sh <- large.n*cov(t(replicate(N,{
++       X <- generateData(n=large.n,
++                         d=d,
++                         tau=sigma.grid[i,]$tau,
++                         dtau=0,
++                         dtau_type="none",
++                         distribution=sigma.grid[i,]$distribution)
++       
++       cor.fk(X)[ij.mat]
++     })))
++     sb <- averageSigma(Sh, l.mat, full=F)
++     
++     return(sb)
++   }, mc.cores = 6)
++   saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
++ }else{
++   sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
++ }

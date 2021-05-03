@@ -12,20 +12,17 @@ library(parallel)
 
 
 #*************** IMPORTANT TUNING PARAMETER
-run.id <- 1 
-large.n <- 10000 # for asymptotic results..
+run.id <- 3
+large.n <- 50000 # for asymptotic results..
 M <- 5000
 
 
 ################
 # distribution #
 ################
-d <- c(5,25,50)
-# d <- 5
-tau <- c(0,.25,.5,.75)
-# tau <- .25
-distribution <- c("normal","cauchy","joe")
-# distribution <- c("normal")
+d <- c(10)
+tau <- c(.5)
+distribution <- c("cauchy")
 
 distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
 distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
@@ -67,7 +64,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 10000
+N <- 50000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 
 if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
@@ -310,45 +307,3 @@ powers <- rbindlist(powers)
 full.grid <- merge(full.grid, powers, by=intersect(names(full.grid),names(powers)))
 
 fwrite(full.grid, paste0("sim/sim-main/powerCurves/full_grid_",run.id,".csv"))
-
-# library(ggplot2)
-# al <- .1
-# ggplot(full.grid[round(alpha,3)==al], aes(x=epsilon, y=power, col=norm)) + 
-#   theme_light() +
-#   geom_line() + 
-#   geom_hline(yintercept=al, lty=2) +
-#   ylim(c(0,1)) +
-#   facet_wrap(~zeta1_id)
-# 
-# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-#   theme_light() +
-#   geom_line() + 
-#   ylim(c(0,1)) +
-#   facet_wrap(~zeta1_id)
-# 
-# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-#   theme_light() +
-#   geom_line() + 
-#   xlim(c(0,1)) +
-#   ylim(c(0,.05)) +
-#   facet_wrap(~zeta1_id)
-# ggplot(full.grid[norm == "Supremum"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
-#   theme_light() +
-#   geom_line() + 
-#   xlim(c(0,.31)) +
-#   ylim(c(0,.125)) +
-#   facet_wrap(~zeta1_id)
-# 
-# 
-# hist(full.grid[epsilon == 0, (alpha - power)/alpha])
-# 
-# 
-# 
-# al <- .1
-# ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "normal"],
-#        aes(x=epsilon, y=power, col=norm, linetype=S)) + 
-#   theme_light() +
-#   geom_line() + 
-#   geom_hline(yintercept=al, lty=2) +
-#   ylim(c(0,1)) +
-#   facet_wrap(d~tau)
