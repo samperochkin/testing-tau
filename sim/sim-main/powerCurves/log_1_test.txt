@@ -31,18 +31,16 @@ Loading required package: copula
 > # Setup -------------------------------------------------------------------
 > 
 > 
-> #*************** IMPORTANT TUNING PARAMETER
-> run.id <- 3
-> large.n <- 50000 # for asymptotic results..
+> large.n <- 10000 # for asymptotic results..
 > M <- 5000
 > 
 > 
 > ################
 > # distribution #
 > ################
-> d <- c(10)
-> tau <- c(.5)
-> distribution <- c("cauchy")
+> d <- c(5,25,50)
+> tau <- c(0,.25,.5,.75)
+> distribution <- c("normal","cauchy","joe")
 > 
 > distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
 > distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
@@ -84,79 +82,10 @@ Loading required package: copula
 > source("sim/sim-main/functionsLow2/generateData.R")
 > source("sim/sim-main/functionsLow2/averageSigma.R")
 > 
-> N <- 50000
+> N <- 10000
 > sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
-> 
-> if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
-+   sigma.list <- mclapply(1:nrow(sigma.grid), function(i){
-+     
-+     d <- 10
-+     ij.mat <- t(combn(d,2))
-+     l.mat <- matrix(0,d,d)
-+     l.mat[ij.mat] <- l.mat[ij.mat[,2:1]] <- 1:nrow(ij.mat)
-+     
-+     Sh <- large.n*cov(t(replicate(N,{
-+       X <- generateData(n=large.n,
-+                         d=d,
-+                         tau=sigma.grid[i,]$tau,
-+                         dtau=0,
-+                         dtau_type="none",
-+                         distribution=sigma.grid[i,]$distribution)
-+       
-+       cor.fk(X)[ij.mat]
-+     })))
-+     sb <- averageSigma(Sh, l.mat, full=F)
-+     
-+     return(sb)
-+   }, mc.cores = 6)
-+   saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
-+ }else{
-+   sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
-+ }
-> 
-> 
-> 
-> # Creating full Sigma matrices from 3d sigmas -----------------------------
-> if(!file.exists(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))){
-+   
-+   expandSigma <- function(sb, d){
-+     
-+     p <- choose(d,2)
-+     ij.mat <- t(combn(d,2))
-+     l.mat <- matrix(0,d,d)
-+     l.mat[ij.mat] <- l.mat[ij.mat[,2:1]] <- 1:nrow(ij.mat)
-+     
-+     Sb <- matrix(0,p,p)
-+     
-+     B <- Matrix::Matrix(0, nrow = p, ncol = d, sparse = T)
-+     for(i in 1:d){
-+       B[l.mat[i,-i],i] <- 1
-+     }
-+     BtB <- Matrix::tcrossprod(B)
-+     
-+     for(k in 0:2){
-+       Sb[Matrix::which(BtB == k)] <- sb[k+1]
-+     }
-+     
-+     eig <- eigen(Sb, symmetric = T)
-+     Sh2 <- eig$vectors %*% diag(sqrt(eig$values)) %*% t(eig$vectors)
-+     Shi <- eig$vectors %*% diag(1/eig$values) %*% t(eig$vectors)
-+     Shi2 <- eig$vectors %*% diag(1/sqrt(eig$values)) %*% t(eig$vectors)
-+     
-+     return(list(Sigma = Sb, Sigma2 = Sh2, SigmaI = Shi, SigmaI2 = Shi2))
-+   }
-+   
-+   
-+   Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
-+     expandSigma(sigma.list[[distribution.grid[i]$sigma_id]],distribution.grid[i]$d)
-+   }, mc.cores = 6)
-+   
-+   saveRDS(Sigma.list, paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
-+   
-+ }else{
-+   Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
-+ }
->   
+> sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",1,".rds"))
+> Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",1,".rds"))
 > 
 > 
 > # Computation of S.star ---------------------------------------------------
@@ -194,7 +123,6 @@ Loading required package: copula
 + }, mc.cores = 6)
 > 
 > 
-> 
 > # Approximation of the null distribution quantiles  -----------------------
 > quantiles.grid <- as.data.table(expand.grid(S_star_id = S.star.grid$S_star_id,
 +                                             norm = norm))
@@ -227,8 +155,6 @@ Loading required package: copula
 > 
 > full.grid <- merge(full.grid, zeta1.grid, by=c("Sigma_id", "S", "d", "dtau_type"))
 > 
-> 
-> ## BETA = 0 ?!?
 > zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i){
 +   
 +   d <- zeta1.grid[i]$d
@@ -265,7 +191,7 @@ Loading required package: copula
 +   C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
 +   C[-dep_set,-dep_set] <- -2*b
 +   
-+   zeta1 <- c(1/a^2 * C %*% Si %*% B)
++   zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
 +   if(dtau_type == "column") zeta1 <- -zeta1
 +   return(zeta1)
 + }, mc.cores = 6)
@@ -326,8 +252,8 @@ Loading required package: copula
 > powers <- rbindlist(powers)
 > full.grid <- merge(full.grid, powers, by=intersect(names(full.grid),names(powers)))
 > 
-> fwrite(full.grid, paste0("sim/sim-main/powerCurves/full_grid_",run.id,".csv"))
+> fwrite(full.grid, paste0("sim/sim-main/powerCurves/full_grid_",1,"-test.csv"))
 > 
 > proc.time()
-     user    system   elapsed 
-18655.587    74.581 18884.695 
+    user   system  elapsed 
+3369.965  214.867  649.076 

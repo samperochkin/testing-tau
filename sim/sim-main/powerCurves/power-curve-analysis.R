@@ -9,7 +9,7 @@ library(ggplot2)
 
 # Load results ------------------------------------------------------------
 
-full.grid <- fread("sim/sim-main/powerCurves/full_grid_1.csv")
+full.grid <- fread("sim/sim-main/powerCurves/full_grid_1-test.csv")
 
 
 # Plots -------------------------------------------------------------------
@@ -41,9 +41,11 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "n
 al <- .05
 ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & norm == "Supremum"],
        aes(x=epsilon, y=power, col=distribution, linetype=S)) +
+  ggtitle("Power curves (Supremum-based stats, single departure)") +
   theme_light() +
   geom_line() +
   geom_hline(yintercept=al, lty=2) +
+  xlim(c(0,5)) +
   ylim(c(0,1)) +
   facet_wrap(d~tau)
 
@@ -61,9 +63,11 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & norm == "Euclidean
 al <- .05
 ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & norm == "Supremum"],
        aes(x=epsilon, y=power, col=distribution, linetype=S)) +
+  ggtitle("Power curves (Supremum-based stats, column departure)") +
   theme_light() +
   geom_line() +
   geom_hline(yintercept=al, lty=2) +
+  xlim(c(0,5)) +
   ylim(c(0,1)) +
   facet_wrap(d~tau)
 
@@ -99,3 +103,58 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "c
   ylim(c(0,1)) +
   facet_wrap(d~tau)
 
+
+
+
+
+#################
+
+ds <- sort(unique(full.grid$d))
+d_labels <- sapply(ds, function(d){
+  paste0("d = ", d)
+})
+names(d_labels) <- ds
+
+taus <- sort(unique(full.grid$tau))
+tau_labels <- sapply(taus, function(tau0){
+  eval(expression(tau))
+})
+names(tau_labels) <- taus
+
+# single - Joe
+al <- .05
+ggplot(full.grid[round(alpha,3)==al & distribution == "joe" & dtau_type == "single"],
+       aes(x=epsilon, y=power, col=norm, linetype=S)) +
+  ggtitle("Power curves (Joe copula, single departure)") +
+  xlab(bquote(epsilon)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  scale_color_manual(values = c("red", "blue")) +
+  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
+  geom_vline(xintercept=0) +
+  geom_hline(yintercept=0) +
+  geom_hline(yintercept=al, lty=3, col="gray25") +
+  ylim(c(0,1)) +
+  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
+                                            cols = `tau` == .(tau)))
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "joe"],
+       aes(x=epsilon, y=power, col=norm, linetype=S)) +
+  ggtitle("Power curves (Joe copula, column departure)") +
+  xlab(bquote(epsilon)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  scale_color_manual(values = c("red", "blue")) +
+  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
+  geom_vline(xintercept=0) +
+  geom_hline(yintercept=0) +
+  geom_hline(yintercept=al, lty=3, col="gray25") +
+  ylim(c(0,1)) +
+  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
+                                            cols = `tau` == .(tau)))
