@@ -9,10 +9,123 @@ library(ggplot2)
 
 # Load results ------------------------------------------------------------
 
-full.grid <- fread("sim/sim-main/powerCurves/full_grid_1-test.csv")
+full.grid <- fread("sim/sim-main/powerCurves/full_grid_2.csv")
 
 
 # Plots -------------------------------------------------------------------
+
+# Plots in main text
+ds <- sort(unique(full.grid$d))
+d_labels <- sapply(ds, function(d){
+  paste0("d = ", d)
+})
+names(d_labels) <- ds
+
+taus <- sort(unique(full.grid$tau))
+tau_labels <- sapply(taus, function(tau0){
+  eval(expression(tau))
+})
+names(tau_labels) <- taus
+
+# single - normal
+al <- .05
+ggplot(full.grid[round(alpha,3)==al & distribution == "normal" & dtau_type == "single"],
+       aes(x=epsilon, y=power, col=norm, linetype=S)) +
+  ggtitle("Power curves (Normal copula, single departure)") +
+  xlab(bquote(epsilon)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  scale_color_manual(values = c("red", "blue")) +
+  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
+  geom_vline(xintercept=0) +
+  geom_hline(yintercept=0) +
+  geom_hline(yintercept=al, lty=3, col="gray25") +
+  ylim(c(0,1)) +
+  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
+                                            cols = `tau` == .(tau)))
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal"],
+       aes(x=epsilon, y=power, col=norm, linetype=S)) +
+  ggtitle("Power curves (Normal copula, column departure)") +
+  xlab(bquote(epsilon)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  scale_color_manual(values = c("red", "blue")) +
+  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
+  geom_vline(xintercept=0) +
+  geom_hline(yintercept=0) +
+  geom_hline(yintercept=al, lty=3, col="gray25") +
+  ylim(c(0,1)) +
+  xlim(c(0,5)) +
+  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
+                                            cols = `tau` == .(tau)))
+
+
+
+
+
+
+
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(tau~norm+S)
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(d~norm+S)
+#
+
+
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "joe",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(tau~norm+S)
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "joe",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power)) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(d~norm+S)
+
+
+
+
+
+
+
 
 
 # single - normal
@@ -67,7 +180,7 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & norm == "Supremum"
   theme_light() +
   geom_line() +
   geom_hline(yintercept=al, lty=2) +
-  xlim(c(0,5)) +
+  xlim(c(0,10)) +
   ylim(c(0,1)) +
   facet_wrap(d~tau)
 
@@ -105,56 +218,135 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "c
 
 
 
+#####################################
 
-
-#################
-
-ds <- sort(unique(full.grid$d))
-d_labels <- sapply(ds, function(d){
-  paste0("d = ", d)
-})
-names(d_labels) <- ds
-
-taus <- sort(unique(full.grid$tau))
-tau_labels <- sapply(taus, function(tau0){
-  eval(expression(tau))
-})
-names(tau_labels) <- taus
-
-# single - Joe
-al <- .05
-ggplot(full.grid[round(alpha,3)==al & distribution == "joe" & dtau_type == "single"],
-       aes(x=epsilon, y=power, col=norm, linetype=S)) +
-  ggtitle("Power curves (Joe copula, single departure)") +
-  xlab(bquote(epsilon)) +
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "joe",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
   theme_light() +
   theme(panel.grid.minor = element_blank(),
         strip.background = element_rect(fill="gray95"),
         strip.text = element_text(colour = 'black')) +
   geom_line() +
-  scale_color_manual(values = c("red", "blue")) +
-  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
-  geom_vline(xintercept=0) +
-  geom_hline(yintercept=0) +
-  geom_hline(yintercept=al, lty=3, col="gray25") +
-  ylim(c(0,1)) +
-  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
-                                            cols = `tau` == .(tau)))
-
-ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "joe"],
-       aes(x=epsilon, y=power, col=norm, linetype=S)) +
-  ggtitle("Power curves (Joe copula, column departure)") +
-  xlab(bquote(epsilon)) +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "normal",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
   theme_light() +
   theme(panel.grid.minor = element_blank(),
         strip.background = element_rect(fill="gray95"),
         strip.text = element_text(colour = 'black')) +
   geom_line() +
-  scale_color_manual(values = c("red", "blue")) +
-  scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
-  geom_vline(xintercept=0) +
-  geom_hline(yintercept=0) +
-  geom_hline(yintercept=al, lty=3, col="gray25") +
-  ylim(c(0,1)) +
-  facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
-                                            cols = `tau` == .(tau)))
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "cauchy",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+
+
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "joe",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "normal",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "cauchy",
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+
+
+
+#### COLUMN EPS LESS THAN 5
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "joe" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "cauchy" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=d, y=power, col=as.factor(tau))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+
+
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "joe" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)
+ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "cauchy" & epsilon <= 5,
+                 .(power = mean(power)),
+                 .(norm, S, d, tau)],
+       aes(x=tau, y=power, col=as.factor(d))) +
+  theme_light() +
+  theme(panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill="gray95"),
+        strip.text = element_text(colour = 'black')) +
+  geom_line() +
+  facet_grid(norm~S)

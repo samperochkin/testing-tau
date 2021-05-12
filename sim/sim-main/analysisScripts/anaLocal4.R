@@ -10,7 +10,9 @@ library(xtable)
 
 # Load simulations and define parameters ----------------------------------
 
-dt <- rbindlist(list(fread("dt_main_local_7.csv"),fread("dt_main_local_8.csv")))
+dt <- rbindlist(list(fread("dt_main_local_6.csv"),
+                     fread("dt_main_local_7.csv"),
+                     fread("dt_main_local_8.csv")))
 dt[, epsilon := dtau*(-1)^(dtau_type == "column")] # watch out here
 unique(dt$epsilon)
 
@@ -63,6 +65,13 @@ print(xtable(xdt,digits=2),include.rownames = F)
 
 
 # QQ
+ggplot(dt[epsilon == 10 & tau == .25 & dtau_type == "single"],
+       aes(sample=pvalue, col=norm, linetype=norm)) +
+  theme_light() +
+  geom_qq(distribution=stats::qunif, size = .05) +
+  geom_abline(slope=1, intercept = 0, col = "black") +
+  ylim(c(0,1)) +
+  facet_grid(S+Sh~d+n)
 ggplot(dt[epsilon == -10 & tau == .25 & dtau_type == "column"],
        aes(sample=pvalue, col=norm, linetype=norm)) +
   theme_light() +

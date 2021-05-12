@@ -11,12 +11,12 @@ source("simFuns/simFunLocal3.R")
 
 tiime <- Sys.time()
 simFunLocal3(n = c(400),
-          d = c(5,10),
-          tau = c(.25),
-          epsilon = c(5,10),
-          distribution = c("normal"),
+          d = c(5),
+          tau = c(0,.25),
+          epsilon = c(5),
+          distribution = c("joe"),
           num.sim = 1000,
-          filename = "dt_main_local_8",
-          cores = 8
+          filename = "dt_main_local_1",
+          cores = 2
 )
 difftime(Sys.time(),tiime)
