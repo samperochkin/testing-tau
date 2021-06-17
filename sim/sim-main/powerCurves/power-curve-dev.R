@@ -1,4 +1,105 @@
 
+scoreFunction(U, distribution, theta, ij.mat){
+  d <- ncol(U)
+  p <- choose(d,2)
+  
+  if(distribution == "Normal"){
+    X <- qnorm(U)
+    R <- diag(d)*(1-theta) + theta
+    Ri <- (diag(d)- theta/(1 + (d-1)*theta))/(1-theta)
+    
+    XRi <- X %*% Ri
+    XRiERiX <- apply(ij.mat,1,function(ij){
+      E <- matrix(0,d,d)
+      E[rbind(ij,rev(ij))] <- 1
+      sum((XRi %*% E) * XRi)
+    })
+    
+    return(- Ri[ij.mat] + XRiERiX/2)
+  }
+  
+  if(distribution == "Cauchy"){
+    
+    Ri <- (diag(d)- theta/(1 + (d-1)*theta))/(1-theta)
+    XRi <- X %*% Ri
+    XRiERiX <- apply(ij.mat,1,function(ij){
+      E <- matrix(0,d,d)
+      E[rbind(ij,rev(ij))] <- 1
+      sum((XRi %*% E) * XRi)
+    })
+    XRiX <- rowSums(XRi * X)
+    return(- Ri[ij.mat] + ((d+1)/2) * XRiERiX/(1 + XRiX))
+  }
+  
+  if(distribution == "Joe"){
+    
+  }
+  
+}
+
+
+
+
+
+
+
+library(copula)
+help(copJoe)
+copJoe@score(u= c(.5,.5), theta = 2)
+
+
+copJoe@score <- function (u, theta, method = eval(formals(copula:::polyJ)$method)) 
+{
+  if (!is.matrix(u)) 
+    u <- rbind(u, deparse.level = 0L)
+  if ((d <- ncol(u)) < 2) 
+    stop("u should be at least bivariate")
+  l1_u <- rowSums(log1p(-u))
+  u.th <- (1 - u)^theta
+  lh <- rowSums(log1p(-u.th))
+  l1_h <- log1mexp(-lh)
+  lh_l1_h <- lh - l1_h
+  b <- rowSums(-l1_u * u.th/(1 - u.th))
+  alpha <- 1/theta
+  lP <- copula:::polyJ(lh_l1_h, alpha, d, method = method, log = TRUE)
+  k <- 1:d
+  s <- alpha * unlist(lapply(k, function(k.) sum(1/(theta * 
+      (1:k.) - 1))))
+  ls <- log(s + (k - 1) * exp(log(b) - l1_h))
+  l.a.k <- log(Stirling2.all(d)) + lgamma(k - alpha) - lgamma(1 - 
+                                                                alpha) + ls
+  lQ <- copula:::lsum(l.a.k + (k - 1) %*% t(lh_l1_h))
+  (d - 1)/theta + rowSums(l1_u) - l1_h/theta^2 + (1 - 1/theta) * 
+    lh_l1_h * b + exp(lQ - lP)
+}
+
+copJoe@score(u=c(.5,.5), theta=2)
+method = eval(formals(copula:::polyJ)$method)
+
+
+if (!is.matrix(u)) 
+  u <- rbind(u, deparse.level = 0L)
+if ((d <- ncol(u)) < 2) 
+  stop("u should be at least bivariate")
+l1_u <- rowSums(log1p(-u))
+u.th <- (1 - u)^theta
+lh <- rowSums(log1p(-u.th))
+l1_h <- log1mexp(-lh)
+lh_l1_h <- lh - l1_h
+b <- rowSums(-l1_u * u.th/(1 - u.th))
+alpha <- 1/theta
+lP <- copula:::polyJ(lh_l1_h, alpha, d, method = method, log = TRUE)
+k <- 1:d
+s <- alpha * unlist(lapply(k, function(k.) sum(1/(theta * 
+                                                    (1:k.) - 1))))
+ls <- log(s + (k - 1) * exp(log(b) - l1_h))
+l.a.k <- log(Stirling2.all(d)) + lgamma(k - alpha) - lgamma(1 - 
+                                                              alpha) + ls
+lQ <- copula:::lsum(l.a.k + (k - 1) %*% t(lh_l1_h))
+(d - 1)/theta + l1_u - l1_h/theta^2 + (1 - 1/theta) * 
+  lh_l1_h * b + exp(lQ - lP)
+
+
 
 # Packages ----------------------------------------------------------------
 
