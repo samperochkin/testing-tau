@@ -14,7 +14,7 @@ library(parallel)
 #*************** IMPORTANT TUNING PARAMETER
 run.id <- 1 
 large.n <- 10000 # for asymptotic results..
-M <- 5000
+M <- 10000
 
 
 ################
@@ -248,7 +248,7 @@ zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i){
   C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
   C[-dep_set,-dep_set] <- -2*b
   
-  zeta1 <- c(1/a^2 * C %*% Si %*% B)
+  zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
   if(dtau_type == "column") zeta1 <- -zeta1
   return(zeta1)
 }, mc.cores = 6)

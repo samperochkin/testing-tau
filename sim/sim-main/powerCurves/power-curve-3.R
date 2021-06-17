@@ -14,15 +14,18 @@ library(parallel)
 #*************** IMPORTANT TUNING PARAMETER
 run.id <- 3
 large.n <- 50000 # for asymptotic results..
-M <- 5000
+M <- 10000
 
 
 ################
 # distribution #
 ################
-d <- c(10)
-tau <- c(.5)
-distribution <- c("cauchy")
+d <- c(5,25,50)
+# d <- 5
+tau <- c(.01,.125,.375)
+# tau <- .25
+distribution <- c("normal","cauchy","joe")
+# distribution <- c("normal")
 
 distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
 distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
@@ -88,7 +91,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
     sb <- averageSigma(Sh, l.mat, full=F)
     
     return(sb)
-  }, mc.cores = 6)
+  }, mc.cores = 8)
   saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
 }else{
   sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
@@ -129,7 +132,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))){
   
   Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
     expandSigma(sigma.list[[distribution.grid[i]$sigma_id]],distribution.grid[i]$d)
-  }, mc.cores = 6)
+  }, mc.cores = 8)
   
   saveRDS(Sigma.list, paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
   
@@ -171,7 +174,7 @@ S.star.list <- mclapply(1:nrow(S.star.grid), function(i){
   G <- matrix(colSums(Si),p,p,byrow=T) / sum(Si)
   IG <- diag(p)-G
   Si2 %*% IG %*% Sigma2
-}, mc.cores = 6)
+}, mc.cores = 8)
 
 
 
@@ -194,7 +197,7 @@ generateMCQuantile <- function(S.star, norm, Mq = M, probs = c(.9,.95,.975,.99,.
 
 quantiles.list <- mclapply(1:nrow(quantiles.grid), function(i){
   generateMCQuantile(S.star = S.star.list[[quantiles.grid[i]$S_star_id]], norm = quantiles.grid[i]$norm)
-}, mc.cores = 6)
+}, mc.cores = 8)
 
 
 # Computation of drift term -----------------------------------------------
@@ -237,18 +240,16 @@ zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i){
   }
   
   if(dtau_type == "single") dep_set <- 1
-  if(dtau_type == "column") dep_set <- 1:(d-1)
+  if(dtau_type == "column") dep_set <- d:p
   a <- sum(Si)
   b <- sum(Si[,dep_set])
-  C <- matrix(0,p,p)
-  C[dep_set,dep_set] <- 2*(a-b)
-  C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
-  C[-dep_set,-dep_set] <- -2*b
-  
-  zeta1 <- c(1/a^2 * C %*% Si %*% B)
-  if(dtau_type == "column") zeta1 <- -zeta1
+  ep <- rep(0,p)
+  ep[dep_set] <- 1
+
+  zeta1 <- c(Si2 %*% (-b/a + ep))
+  # if(dtau_type == "column") zeta1 <- -zeta1
   return(zeta1)
-}, mc.cores = 6)
+}, mc.cores = 8)
 
 # not needed anymore
 rm(Sigma.list)
@@ -300,10 +301,52 @@ powers <- mclapply(1:nrow(power.grid), function(i){
     norm = new.power.grid$norm))
   res.grid[,power := unlist(c(power1,power2))]
   merge(res.grid, new.power.grid, by = "norm")
-}, mc.cores = 6)
+}, mc.cores = 8)
 
 
 powers <- rbindlist(powers)
 full.grid <- merge(full.grid, powers, by=intersect(names(full.grid),names(powers)))
 
 fwrite(full.grid, paste0("sim/sim-main/powerCurves/full_grid_",run.id,".csv"))
+
+# library(ggplot2)
+# al <- .1
+# ggplot(full.grid[round(alpha,3)==al], aes(x=epsilon, y=power, col=norm)) + 
+#   theme_light() +
+#   geom_line() + 
+#   geom_hline(yintercept=al, lty=2) +
+#   ylim(c(0,1)) +
+#   facet_wrap(~zeta1_id)
+# 
+# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   ylim(c(0,1)) +
+#   facet_wrap(~zeta1_id)
+# 
+# ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   xlim(c(0,1)) +
+#   ylim(c(0,.05)) +
+#   facet_wrap(~zeta1_id)
+# ggplot(full.grid[norm == "Supremum"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
+#   theme_light() +
+#   geom_line() + 
+#   xlim(c(0,.31)) +
+#   ylim(c(0,.125)) +
+#   facet_wrap(~zeta1_id)
+# 
+# 
+# hist(full.grid[epsilon == 0, (alpha - power)/alpha])
+# 
+# 
+# 
+# al <- .1
+# ggplot(full.grid[round(alpha,3)==al & dtau_type == "single" & distribution == "normal"],
+#        aes(x=epsilon, y=power, col=norm, linetype=S)) + 
+#   theme_light() +
+#   geom_line() + 
+#   geom_hline(yintercept=al, lty=2) +
+#   ylim(c(0,1)) +
+#   facet_wrap(d~tau)

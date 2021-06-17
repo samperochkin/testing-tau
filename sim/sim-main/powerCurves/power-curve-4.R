@@ -1,4 +1,105 @@
 
+scoreFunction(U, distribution, theta, ij.mat){
+  d <- ncol(U)
+  p <- choose(d,2)
+  
+  if(distribution == "Normal"){
+    X <- qnorm(U)
+    R <- diag(d)*(1-theta) + theta
+    Ri <- (diag(d)- theta/(1 + (d-1)*theta))/(1-theta)
+    
+    XRi <- X %*% Ri
+    XRiERiX <- apply(ij.mat,1,function(ij){
+      E <- matrix(0,d,d)
+      E[rbind(ij,rev(ij))] <- 1
+      sum((XRi %*% E) * XRi)
+    })
+    
+    return(- Ri[ij.mat] + XRiERiX/2)
+  }
+  
+  if(distribution == "Cauchy"){
+    
+    Ri <- (diag(d)- theta/(1 + (d-1)*theta))/(1-theta)
+    XRi <- X %*% Ri
+    XRiERiX <- apply(ij.mat,1,function(ij){
+      E <- matrix(0,d,d)
+      E[rbind(ij,rev(ij))] <- 1
+      sum((XRi %*% E) * XRi)
+    })
+    XRiX <- rowSums(XRi * X)
+    return(- Ri[ij.mat] + ((d+1)/2) * XRiERiX/(1 + XRiX))
+  }
+  
+  if(distribution == "Joe"){
+    
+  }
+  
+}
+
+
+
+
+
+
+
+library(copula)
+help(copJoe)
+copJoe@score(u= c(.5,.5), theta = 2)
+
+
+copJoe@score <- function (u, theta, method = eval(formals(copula:::polyJ)$method)) 
+{
+  if (!is.matrix(u)) 
+    u <- rbind(u, deparse.level = 0L)
+  if ((d <- ncol(u)) < 2) 
+    stop("u should be at least bivariate")
+  l1_u <- rowSums(log1p(-u))
+  u.th <- (1 - u)^theta
+  lh <- rowSums(log1p(-u.th))
+  l1_h <- log1mexp(-lh)
+  lh_l1_h <- lh - l1_h
+  b <- rowSums(-l1_u * u.th/(1 - u.th))
+  alpha <- 1/theta
+  lP <- copula:::polyJ(lh_l1_h, alpha, d, method = method, log = TRUE)
+  k <- 1:d
+  s <- alpha * unlist(lapply(k, function(k.) sum(1/(theta * 
+      (1:k.) - 1))))
+  ls <- log(s + (k - 1) * exp(log(b) - l1_h))
+  l.a.k <- log(Stirling2.all(d)) + lgamma(k - alpha) - lgamma(1 - 
+                                                                alpha) + ls
+  lQ <- copula:::lsum(l.a.k + (k - 1) %*% t(lh_l1_h))
+  (d - 1)/theta + rowSums(l1_u) - l1_h/theta^2 + (1 - 1/theta) * 
+    lh_l1_h * b + exp(lQ - lP)
+}
+
+copJoe@score(u=c(.5,.5), theta=2)
+method = eval(formals(copula:::polyJ)$method)
+
+
+if (!is.matrix(u)) 
+  u <- rbind(u, deparse.level = 0L)
+if ((d <- ncol(u)) < 2) 
+  stop("u should be at least bivariate")
+l1_u <- rowSums(log1p(-u))
+u.th <- (1 - u)^theta
+lh <- rowSums(log1p(-u.th))
+l1_h <- log1mexp(-lh)
+lh_l1_h <- lh - l1_h
+b <- rowSums(-l1_u * u.th/(1 - u.th))
+alpha <- 1/theta
+lP <- copula:::polyJ(lh_l1_h, alpha, d, method = method, log = TRUE)
+k <- 1:d
+s <- alpha * unlist(lapply(k, function(k.) sum(1/(theta * 
+                                                    (1:k.) - 1))))
+ls <- log(s + (k - 1) * exp(log(b) - l1_h))
+l.a.k <- log(Stirling2.all(d)) + lgamma(k - alpha) - lgamma(1 - 
+                                                              alpha) + ls
+lQ <- copula:::lsum(l.a.k + (k - 1) %*% t(lh_l1_h))
+(d - 1)/theta + l1_u - l1_h/theta^2 + (1 - 1/theta) * 
+  lh_l1_h * b + exp(lQ - lP)
+
+
 
 # Packages ----------------------------------------------------------------
 
@@ -12,7 +113,7 @@ library(parallel)
 
 
 #*************** IMPORTANT TUNING PARAMETER
-run.id <- 2 
+run.id <- 4
 large.n <- 50000 # for asymptotic results..
 M <- 10000
 
@@ -22,7 +123,7 @@ M <- 10000
 ################
 d <- c(5,25,50)
 # d <- 5
-tau <- c(0,.25,.5,.75)
+tau <- c(.625,.875,.95)
 # tau <- .25
 distribution <- c("normal","cauchy","joe")
 # distribution <- c("normal")
@@ -139,7 +240,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))){
 }else{
   Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
 }
-  
+
 
 
 # Computation of S.star ---------------------------------------------------
@@ -153,7 +254,7 @@ S.star.list <- mclapply(1:nrow(S.star.grid), function(i){
   
   # get relevant quantities
   d_id <- S.star.grid[i]$distribution_id
-
+  
   d <- distribution.grid[distribution_id == d_id,]$d
   # Define (pre-specified) hypothesis
   p <- choose(d,2)
@@ -243,12 +344,10 @@ zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i){
   if(dtau_type == "column") dep_set <- d:p
   a <- sum(Si)
   b <- sum(Si[,dep_set])
-  C <- matrix(0,p,p)
-  C[dep_set,dep_set] <- 2*(a-b)
-  C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
-  C[-dep_set,-dep_set] <- -2*b
+  ep <- rep(0,p)
+  ep[dep_set] <- 1
   
-  zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
+  zeta1 <- c(Si2 %*% (-b/a + ep))
   # if(dtau_type == "column") zeta1 <- -zeta1
   return(zeta1)
 }, mc.cores = 8)
@@ -263,7 +362,7 @@ power.grid <- merge(S.star.grid,
                     by = c("S", "Sigma_id"))
 
 powers <- mclapply(1:nrow(power.grid), function(i){
-
+  
   power.line <- power.grid[i]
   
   S_star_id <- power.line$S_star_id

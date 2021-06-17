@@ -32,7 +32,7 @@ Loading required package: copula
 > 
 > 
 > #*************** IMPORTANT TUNING PARAMETER
-> run.id <- 2 
+> run.id <- 4
 > large.n <- 50000 # for asymptotic results..
 > M <- 10000
 > 
@@ -42,7 +42,7 @@ Loading required package: copula
 > ################
 > d <- c(5,25,50)
 > # d <- 5
-> tau <- c(0,.25,.5,.75)
+> tau <- c(.625,.875,.95)
 > # tau <- .25
 > distribution <- c("normal","cauchy","joe")
 > # distribution <- c("normal")
@@ -159,7 +159,7 @@ Loading required package: copula
 + }else{
 +   Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
 + }
->   
+> 
 > 
 > 
 > # Computation of S.star ---------------------------------------------------
@@ -173,7 +173,7 @@ Loading required package: copula
 +   
 +   # get relevant quantities
 +   d_id <- S.star.grid[i]$distribution_id
-+ 
++   
 +   d <- distribution.grid[distribution_id == d_id,]$d
 +   # Define (pre-specified) hypothesis
 +   p <- choose(d,2)
@@ -263,12 +263,10 @@ Loading required package: copula
 +   if(dtau_type == "column") dep_set <- d:p
 +   a <- sum(Si)
 +   b <- sum(Si[,dep_set])
-+   C <- matrix(0,p,p)
-+   C[dep_set,dep_set] <- 2*(a-b)
-+   C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
-+   C[-dep_set,-dep_set] <- -2*b
++   ep <- rep(0,p)
++   ep[dep_set] <- 1
 +   
-+   zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
++   zeta1 <- c(Si2 %*% (-b/a + ep))
 +   # if(dtau_type == "column") zeta1 <- -zeta1
 +   return(zeta1)
 + }, mc.cores = 8)
@@ -283,7 +281,7 @@ Loading required package: copula
 +                     by = c("S", "Sigma_id"))
 > 
 > powers <- mclapply(1:nrow(power.grid), function(i){
-+ 
++   
 +   power.line <- power.grid[i]
 +   
 +   S_star_id <- power.line$S_star_id
@@ -374,5 +372,5 @@ Loading required package: copula
 > #   facet_wrap(d~tau)
 > 
 > proc.time()
-    user   system  elapsed 
-6841.987 1372.374 1090.393 
+      user     system    elapsed 
+164735.644   1049.523  36138.091 

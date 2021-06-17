@@ -15,6 +15,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+[Previously saved workspace restored]
+
 > 
 > 
 > # Packages ----------------------------------------------------------------
@@ -32,7 +34,7 @@ Loading required package: copula
 > #*************** IMPORTANT TUNING PARAMETER
 > run.id <- 1 
 > large.n <- 10000 # for asymptotic results..
-> M <- 5000
+> M <- 10000
 > 
 > 
 > ################
@@ -266,7 +268,7 @@ Loading required package: copula
 +   C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
 +   C[-dep_set,-dep_set] <- -2*b
 +   
-+   zeta1 <- c(1/a^2 * C %*% Si %*% B)
++   zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
 +   if(dtau_type == "column") zeta1 <- -zeta1
 +   return(zeta1)
 + }, mc.cores = 6)
@@ -373,4 +375,4 @@ Loading required package: copula
 > 
 > proc.time()
     user   system  elapsed 
-3242.887  280.700  640.971 
+6423.725  666.199 1361.382 

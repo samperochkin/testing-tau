@@ -1,7 +1,7 @@
-# n=600
+# n=100
 # d=3
 # tau=.25
-# epsilon=.5
+# epsilon=5
 # distribution="normal"
 # num.sim = 2
 
@@ -11,7 +11,7 @@ simFunLocal3 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", 
   library(parallel)
   library(mvtnorm)
   library(data.table)
-  sapply(list.files("functionsLocal/", full.names = T), source, local = environment())
+  sapply(list.files("functionsLocal3", full.names = T), source, local = environment())
   
   # create a parameter grid
   sim.grid <- createGrid(n, d, tau, epsilon, distribution, num.sim)
@@ -30,8 +30,7 @@ simFunLocal3 <- function(n=100, d=10, tau=.5, epsilon=1, distribution="normal", 
     distribution <- sim.grid[r,]$distribution
     M <- sim.grid[r,]$M
     
-    # Note that we do not generate data exectly the same way as for the "regular" simulation study
-    X <- generateData2(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
+    X <- generateData(n,d,tau,epsilon/sqrt(n),dtau_type,distribution)
     
     cbind(sim.grid[r,],performTestsAlternativeOracle(X=X,epsilon=epsilon,tau=tau,
                                                      M=M, dtau_type=dtau_type))

@@ -11,8 +11,8 @@ library(parallel)
 # Setup -------------------------------------------------------------------
 
 
-large.n <- 10000 # for asymptotic results..
-M <- 5000
+large.n <- 50000 # for asymptotic results..
+M <- 10000
 
 
 ################
@@ -62,7 +62,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 10000
+N <- 50000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",1,".rds"))
 Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",1,".rds"))
