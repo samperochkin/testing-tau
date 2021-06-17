@@ -9,8 +9,9 @@ library(ggplot2)
 
 # Load results ------------------------------------------------------------
 
-full.grid <- fread("sim/sim-main/powerCurves/full_grid_2.csv")
-
+full.grid <- rbindlist(list(fread("sim/sim-main/powerCurves/full_grid_2.csv"),
+                            fread("sim/sim-main/powerCurves/full_grid_3.csv"),
+                            fread("sim/sim-main/powerCurves/full_grid_4.csv")))
 
 # Plots -------------------------------------------------------------------
 
@@ -29,7 +30,8 @@ names(tau_labels) <- taus
 
 # single - normal
 al <- .05
-ggplot(full.grid[round(alpha,3)==al & distribution == "normal" & dtau_type == "single"],
+ggplot(full.grid[round(alpha,3)==al & tau %in% c(0,.25,.5) &
+                   distribution == "normal" & dtau_type == "single"],
        aes(x=epsilon, y=power, col=norm, linetype=S)) +
   ggtitle("Power curves (Normal copula, single departure)") +
   xlab(bquote(epsilon)) +
@@ -38,16 +40,19 @@ ggplot(full.grid[round(alpha,3)==al & distribution == "normal" & dtau_type == "s
         strip.background = element_rect(fill="gray95"),
         strip.text = element_text(colour = 'black')) +
   geom_line() +
+  scale_x_continuous(breaks = c(0, 2.5, 5, 7.5, 10), labels = c("0", "2.5", "5", "7.5", "10")) +
+  scale_y_continuous(breaks = c(0, .5, 1), labels = c("0", "0.5", "1")) +
   scale_color_manual(values = c("red", "blue")) +
   scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
   geom_vline(xintercept=0) +
   geom_hline(yintercept=0) +
   geom_hline(yintercept=al, lty=3, col="gray25") +
-  ylim(c(0,1)) +
   facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
                                             cols = `tau` == .(tau)))
 
-ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "normal"],
+# column - normal
+ggplot(full.grid[round(alpha,3)==al & tau %in% c(0,.25,.5) &
+                   dtau_type == "column" & distribution == "normal"],
        aes(x=epsilon, y=power, col=norm, linetype=S)) +
   ggtitle("Power curves (Normal copula, column departure)") +
   xlab(bquote(epsilon)) +
@@ -56,16 +61,16 @@ ggplot(full.grid[round(alpha,3)==al & dtau_type == "column" & distribution == "n
         strip.background = element_rect(fill="gray95"),
         strip.text = element_text(colour = 'black')) +
   geom_line() +
+  scale_x_continuous(breaks = c(0, 2.5, 5), labels = c("0", "2.5", "5"), limits = c(0,5)) +
+  scale_y_continuous(breaks = c(0, .5, 1), labels = c("0", "0.5", "1")) +
   scale_color_manual(values = c("red", "blue")) +
   scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
   geom_vline(xintercept=0) +
   geom_hline(yintercept=0) +
   geom_hline(yintercept=al, lty=3, col="gray25") +
-  ylim(c(0,1)) +
-  xlim(c(0,5)) +
   facet_grid(d~tau, labeller = label_bquote(rows = `d` == .(d),
                                             cols = `tau` == .(tau)))
-
+#
 
 
 
