@@ -11,7 +11,6 @@ simFunHigh2 <- function(n=100, d=10, tau=.5, dtau=0, distribution="normal", num_
   
   # packages
   library(parallel)
-  library(mvtnorm)
   library(data.table)
   sapply(list.files("functionsHigh2/", full.names = T), source, local = environment())
   
@@ -29,7 +28,7 @@ simFunHigh2 <- function(n=100, d=10, tau=.5, dtau=0, distribution="normal", num_
   clusterEvalQ(clus, expr={
     library(data.table)
     library(mvtnorm)
-    # library(HAC)
+    library(HAC)
   })
   
   clusterExport(clus,

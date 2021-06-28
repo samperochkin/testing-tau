@@ -21,6 +21,15 @@ generateData <- function(n, d, tau, dtau, dtau_type, distribution){
     
     X <- rmvt(n,Sig,1)
     
+  }else if(distribution == "t4"){
+    
+    Sig <- diag(d) + (1-diag(d))*sin(tau*pi/2)
+    
+    if(dtau_type == "single") Sig[cbind(c(1,2),c(2,1))] <- sin((tau + dtau)*pi/2)
+    if(dtau_type == "column") Sig[-1,-1] <- diag(d-1) + (1-diag(d-1))*sin((tau + dtau)*pi/2) 
+    
+    X <- rmvt(n,Sig,4)
+    
   }else if(distribution == "joe"){
     
     if(dtau == 0){

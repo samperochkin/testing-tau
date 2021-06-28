@@ -1,0 +1,20 @@
+
+# packages ----------------------------------------------------------------
+library(data.table)
+
+# functions ---------------------------------------------------------------
+source("simFuns/simFunHigh2.R")
+
+# procedure ---------------------------------------------------------------
+
+tiime <- Sys.time()
+simFunHigh2(n = c(50,100),
+       d = c(100),
+       tau = c(0,.3,.6),
+       dtau = c(0,.1,.2),
+       distribution = c("t4"),
+       num_sim = 1000,
+       filename = "/store/samuel/testing-tau-extra/dt_main_high_3_t4",
+       clus = 10
+)
+difftime(Sys.time(),tiime)

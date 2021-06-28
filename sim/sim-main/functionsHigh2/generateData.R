@@ -21,6 +21,15 @@ generateData <- function(n, d, tau, dtau, dtau_type, distribution){
     
     X <- rmvt(n,Sig,1)
     
+  }else if(distribution == "t4"){
+    
+    Sig <- diag(d) + (1-diag(d))*sin(tau*pi/2)
+    
+    if(dtau_type == "single") Sig[cbind(c(1,2),c(2,1))] <- sin((tau + dtau)*pi/2)
+    if(dtau_type == "column") Sig[-1,-1] <- diag(d-1) + (1-diag(d-1))*sin((tau + dtau)*pi/2) 
+    
+    X <- rmvt(n,Sig,4)
+    
   }else if(distribution == "joe"){
     
     if(dtau == 0){
@@ -43,6 +52,18 @@ generateData <- function(n, d, tau, dtau, dtau_type, distribution){
     }else if(dtau_type == "column"){
       tree <- list(list("1",tau2theta(tau+dtau,3)), c(as.list(paste0(2:d)),tau2theta(tau+dtau,3)), tau2theta(tau,3))
       X <- rHAC(n, hac(3,tree))
+    }
+    
+  }else if(distribution == "gumbel"){
+    
+    if(dtau == 0){
+      X <- rHAC(n, hac(1,c(as.list(as.character(1:d)),tau2theta(tau,1))))
+    }else if(dtau_type == "single"){
+      tree <- c(list(c(as.list(paste0(1:2)),tau2theta(tau+dtau,1))),c(as.list(paste0(3:d)),tau2theta(tau,1)))
+      X <- rHAC(n, hac(1,tree))
+    }else if(dtau_type == "column"){
+      tree <- list(list("1",tau2theta(tau+dtau,1)), c(as.list(paste0(2:d)),tau2theta(tau+dtau,1)), tau2theta(tau,1))
+      X <- rHAC(n, hac(1,tree))
     }
     
   }else if(distribution == "frank"){
