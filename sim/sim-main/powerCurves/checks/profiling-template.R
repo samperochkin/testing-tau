@@ -1,58 +1,17 @@
-scoreFunction <- function(distribution = "normal", params){
-  #params <- list(R, ij.mat)
-  
-  if(distribution == "normal"){
-    
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
-        
-        Ri <- solve(params$R)
-        XRi <- X %*% Ri
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
-          E <- matrix(0,d,d)
-          E[rbind(ij,rev(ij))] <- 1
-          sum((XRi %*% E) * XRi)
-        })
-        - nrow(X)*Ri[ij.mat] + XRiERiX/2
-      }
-      
-    )
-  }
-  
-  if(distribution == "t4"){
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
-        
-        Ri <- solve(params$R)
-        XRi <- X %*% Ri
-        XRiX <- rowSums(XRi * X)
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
-          E <- matrix(0,d,d)
-          E[rbind(ij,rev(ij))] <- 1
-          sum(((XRi %*% E) * XRi)/(4 + XRiX))
-        })
-        - nrow(X)*Ri[params$ij.mat] + ((d+4)/2) * XRiERiX        }
-      
-    )
-  }
+library(magrittr)
+library(HAC)
 
-  if(distribution == "clayton") return(scoreFunctionTOP(X, family = "clayton", params))
-  if(distribution == "gumbel") return(scoreFunctionTOP(X, family = "gumbel", params))
-}
+library(profvis)
+n <- 20
+d <- 5
+X <- matrix(rnorm(n*d),n,d)
+departure <- "single"
+
+params <- list(theta = c(2,3))
+family <- "clayton"
 
 
-X <- matrix(rnorm(7*10),10,7)
-
-
-
-scoreFunctionTOP <- function(X, family, params){
-  
+p <- profvis({
   theta <- params$theta
   
   n <- nrow(X)
@@ -112,6 +71,8 @@ scoreFunctionTOP <- function(X, family, params){
   stirling1.lookup[stirling1.ind] <- mapply(FUN = function(n,l) copula::Stirling1(n,l), stirling1.ind[,1], stirling1.ind[,2])
   stirling2.lookup[stirling2.ind] <- mapply(FUN = function(l,k) copula::Stirling2(l,k), stirling2.ind[,1], stirling2.ind[,2])
   
+  print(stirling2.lookup)
+  
   # top page 4 -- derivative w.r.t. x AND derivative w.r.t. theta[s]
   sFunPrime <- function(x,n,k) sum(sapply(k:n, function(l) stirling1.lookup[n,l] * stirling2.lookup[l,k] * l * x^(l-1)))
   sFun1sDot.s <- function(s,n,k) - sFunPrime(theta[1]/theta[s],n,k) * theta[1]/theta[s]^2
@@ -170,12 +131,16 @@ scoreFunctionTOP <- function(X, family, params){
   ###########################
   # Putting it all together #
   ###########################
-  # U <- apply(X,2,rank)/(nrow(X)+1) #********** Is this necessary? **********#
+  U <- apply(X,2,rank)/(nrow(X)+1) #********** Is this necessary? **********#
   
-  # lookup tables for atDot.s (within the apply calls below) would be the next step to improve speed.
+  # lookup tables for a, at.s, b, bt.s (within the apply calls below) would be the next step to improve speed.
   
-  T1Dot.eval <- apply(X,1,function(uu) T1Dot(list(uu[I1],uu[I2]))) %>% sum
-  T2Dot.eval <- apply(X[,I2],1,T2Dot) %>% sum
+  T1Dot.eval <- apply(U,1,function(uu) T1Dot(list(uu[I1],uu[I2]))) %>% sum
+  T2Dot.eval <- apply(U[,I2],1,T2Dot) %>% sum
   T1Dot.eval + T2Dot.eval
-  
-}
+})
+
+
+# View it with:
+p
+# or print(p)

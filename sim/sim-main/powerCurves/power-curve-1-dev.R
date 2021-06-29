@@ -12,8 +12,8 @@ library(parallel)
 
 
 #*************** IMPORTANT TUNING PARAMETER
-run.id <- 4
-large.n <- 50000 # for asymptotic results..
+run.id <- 1 
+large.n <- 10000 # for asymptotic results..
 M <- 10000
 
 
@@ -22,7 +22,7 @@ M <- 10000
 ################
 d <- c(5,25,50)
 # d <- 5
-tau <- c(.625,.875,.95)
+tau <- c(0,.25,.5,.75)
 # tau <- .25
 distribution <- c("normal","cauchy","joe")
 # distribution <- c("normal")
@@ -67,7 +67,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 50000
+N <- 10000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 
 if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
@@ -91,7 +91,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))){
     sb <- averageSigma(Sh, l.mat, full=F)
     
     return(sb)
-  }, mc.cores = 8)
+  }, mc.cores = 6)
   saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
 }else{
   sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/sigma_list_",run.id,".rds"))
@@ -132,14 +132,14 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))){
   
   Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
     expandSigma(sigma.list[[distribution.grid[i]$sigma_id]],distribution.grid[i]$d)
-  }, mc.cores = 8)
+  }, mc.cores = 6)
   
   saveRDS(Sigma.list, paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
   
 }else{
   Sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/Sigma_list_",run.id,".rds"))
 }
-
+  
 
 
 # Computation of S.star ---------------------------------------------------
@@ -153,7 +153,7 @@ S.star.list <- mclapply(1:nrow(S.star.grid), function(i){
   
   # get relevant quantities
   d_id <- S.star.grid[i]$distribution_id
-  
+
   d <- distribution.grid[distribution_id == d_id,]$d
   # Define (pre-specified) hypothesis
   p <- choose(d,2)
@@ -174,7 +174,7 @@ S.star.list <- mclapply(1:nrow(S.star.grid), function(i){
   G <- matrix(colSums(Si),p,p,byrow=T) / sum(Si)
   IG <- diag(p)-G
   Si2 %*% IG %*% Sigma2
-}, mc.cores = 8)
+}, mc.cores = 6)
 
 
 
@@ -197,7 +197,7 @@ generateMCQuantile <- function(S.star, norm, Mq = M, probs = c(.9,.95,.975,.99,.
 
 quantiles.list <- mclapply(1:nrow(quantiles.grid), function(i){
   generateMCQuantile(S.star = S.star.list[[quantiles.grid[i]$S_star_id]], norm = quantiles.grid[i]$norm)
-}, mc.cores = 8)
+}, mc.cores = 6)
 
 
 # Computation of drift term -----------------------------------------------
@@ -240,16 +240,18 @@ zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i){
   }
   
   if(dtau_type == "single") dep_set <- 1
-  if(dtau_type == "column") dep_set <- d:p
+  if(dtau_type == "column") dep_set <- 1:(d-1)
   a <- sum(Si)
   b <- sum(Si[,dep_set])
-  ep <- rep(0,p)
-  ep[dep_set] <- 1
+  C <- matrix(0,p,p)
+  C[dep_set,dep_set] <- 2*(a-b)
+  C[dep_set,-dep_set] <- C[-dep_set,dep_set] <- a-2*b
+  C[-dep_set,-dep_set] <- -2*b
   
-  zeta1 <- c(Si2 %*% (-b/a + ep))
-  # if(dtau_type == "column") zeta1 <- -zeta1
+  zeta1 <- c(1/a^2 * Si2 %*% C %*% Si %*% B)
+  if(dtau_type == "column") zeta1 <- -zeta1
   return(zeta1)
-}, mc.cores = 8)
+}, mc.cores = 6)
 
 # not needed anymore
 rm(Sigma.list)
@@ -261,7 +263,7 @@ power.grid <- merge(S.star.grid,
                     by = c("S", "Sigma_id"))
 
 powers <- mclapply(1:nrow(power.grid), function(i){
-  
+
   power.line <- power.grid[i]
   
   S_star_id <- power.line$S_star_id
@@ -301,7 +303,7 @@ powers <- mclapply(1:nrow(power.grid), function(i){
     norm = new.power.grid$norm))
   res.grid[,power := unlist(c(power1,power2))]
   merge(res.grid, new.power.grid, by = "norm")
-}, mc.cores = 8)
+}, mc.cores = 6)
 
 
 powers <- rbindlist(powers)
