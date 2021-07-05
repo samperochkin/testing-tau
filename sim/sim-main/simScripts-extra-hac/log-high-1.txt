@@ -36,3 +36,10 @@ Type 'q()' to quit R.
 +        filename = "/store/samuel/testing-tau-extra/dt_main_high_1_hac",
 +        clus = 4
 + )
+NULL
+> difftime(Sys.time(),tiime)
+Time difference of 18.30636 hours
+> 
+> proc.time()
+     user    system   elapsed 
+    4.754     0.607 65903.194 

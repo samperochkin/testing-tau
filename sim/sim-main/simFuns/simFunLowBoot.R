@@ -18,7 +18,7 @@ simFunLowBoot <- function(n=100, d=10, tau=.5, dtau=0, distribution="normal", nu
   sim.grid <- createGrid(n, d, tau, dtau, distribution, num_sim)
   sim.grid$M <- 5000
 
-  print("hey")
+  # print("hey")
   # for parallel stuff
   if(is.null(clus)){
     clus <- makeCluster(detectCores()-1) 
@@ -26,14 +26,14 @@ simFunLowBoot <- function(n=100, d=10, tau=.5, dtau=0, distribution="normal", nu
     clus <- makeCluster(clus)
   }
   
-  print("got here")
+  # print("got here")
   clusterEvalQ(clus, expr={
     library(data.table)
     library(mvtnorm)
-    # library(HAC)
+    library(HAC)
   })
   
-  print("got there")
+  # print("got there")
   clusterExport(clus,
                 varlist=c("sim.grid",Filter(function(x) inherits(get(x), "function"), ls())),
                 envir = environment())

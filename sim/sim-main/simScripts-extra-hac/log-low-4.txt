@@ -22,24 +22,31 @@ Type 'q()' to quit R.
 > library(data.table)
 > 
 > # functions ---------------------------------------------------------------
-> source("simFuns/simFunHigh2.R")
+> 
+> #**************#
+> ## ** BOOT ** ##
+> #**************#
+> source("simFuns/simFunLowBoot.R")
+> #**************#
+> ## ** BOOT ** ##
+> #**************#
 > 
 > # procedure ---------------------------------------------------------------
 > 
 > tiime <- Sys.time()
-> simFunHigh2(n = c(50,100),
-+        d = c(100),
+> simFunLowBoot(n = c(50,100,150),
++        d = c(25),
 +        tau = c(.3,.6),
 +        dtau = c(0,.1,.2),
 +        distribution = c("clayton", "gumbel"),
 +        num_sim = 1000,
-+        filename = "/store/samuel/testing-tau-extra/dt_main_high_3_hac",
-+        clus = 4
++        filename = "/store/samuel/testing-tau-extra/dt_main_low_4_hac",
++        clus = 5
 + )
 NULL
 > difftime(Sys.time(),tiime)
-Time difference of 1.541444 days
+Time difference of 3.137226 hours
 > 
 > proc.time()
-      user     system    elapsed 
-     3.105      0.402 133181.096 
+     user    system   elapsed 
+    3.617     0.876 11294.370 

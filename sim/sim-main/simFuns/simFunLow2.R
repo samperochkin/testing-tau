@@ -28,7 +28,7 @@ simFunLow2 <- function(n=100, d=10, tau=.5, dtau=0, distribution="normal", num_s
   clusterEvalQ(clus, expr={
     library(data.table)
     library(mvtnorm)
-    # library(HAC)
+    library(HAC)
   })
   
   clusterExport(clus,

@@ -7,7 +7,7 @@ library(data.table)
 #**************#
 ## ** BOOT ** ##
 #**************#
-source("simFunLowBoot.R")
+source("simFuns/simFunLowBoot.R")
 #**************#
 ## ** BOOT ** ##
 #**************#
@@ -21,8 +21,7 @@ simFunLowBoot(n = c(50,100,150),
        dtau = c(0,.1,.2),
        distribution = c("clayton", "gumbel"),
        num_sim = 1000,
-       filename = "dt_main_low_3_clayton",
-       # clus = c(rep("dms11",8),rep(c("dms1","dms2","dms3","dms4","dms5"),4))
-       clus = c(rep("dms11",8),rep("dms10",4),rep("dms12",12))
+       filename = "/store/samuel/testing-tau-extra/dt_main_low_3_hac",
+       clus = 5
 )
 difftime(Sys.time(),tiime)
