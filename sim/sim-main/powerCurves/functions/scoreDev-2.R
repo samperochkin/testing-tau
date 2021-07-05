@@ -1,58 +1,4 @@
-scoreFunction <- function(distribution = "normal", params){
-  #params <- list(R, ij.mat)
-  
-  if(distribution == "normal"){
-    
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
-        
-        Ri <- solve(params$R)
-        XRi <- X %*% Ri
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
-          E <- matrix(0,d,d)
-          E[rbind(ij,rev(ij))] <- 1
-          sum((XRi %*% E) * XRi)
-        })
-        - nrow(X)*Ri[ij.mat] + XRiERiX/2
-      }
-      
-    )
-  }
-  
-  if(distribution == "t4"){
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
-        
-        Ri <- solve(params$R)
-        XRi <- X %*% Ri
-        XRiX <- rowSums(XRi * X)
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
-          E <- matrix(0,d,d)
-          E[rbind(ij,rev(ij))] <- 1
-          sum(((XRi %*% E) * XRi)/(4 + XRiX))
-        })
-        - nrow(X)*Ri[params$ij.mat] + ((d+4)/2) * XRiERiX        }
-      
-    )
-  }
-
-  if(distribution == "clayton") return(scoreFunctionTOP(X, family = "clayton", params))
-  if(distribution == "gumbel") return(scoreFunctionTOP(X, family = "gumbel", params))
-}
-
-
-X <- matrix(rnorm(7*10),10,7)
-
-
-
 scoreFunctionTOP <- function(X, family, params){
-  
   theta <- params$theta
   
   n <- nrow(X)
@@ -119,7 +65,7 @@ scoreFunctionTOP <- function(X, family, params){
   kFun <- function(x,k) sapply(1:k, function(j){
     stirling1.lookup[k,j] * x^j
   }) %>% sum
-  
+
   # given
   a <- function(t, s, n, k) (c^theta[s] + t)^(theta[1]*k/theta[s] - n) * sFun(theta[1]/theta[s], n, k)
   b <- function(tt, k){
