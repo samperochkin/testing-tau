@@ -1,59 +1,51 @@
-scoreFunction <- function(distribution = "normal", params){
-  #params <- list(R, ij.mat)
+scoreFunction <- function(X, distribution = "normal", tau, departure = NULL){
+  
+  if(is.vector(X)) X <- matrix(X, nrow=1)
+  d <- ncol(X)
+  ij.mat <- t(combn(d,2)) # ********* MAKE SURE THIS IS IT
   
   if(distribution == "normal"){
     
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
+        R <- diag(d) + (1-diag(d))*sin(tau*pi/2)
         
-        Ri <- solve(params$R)
+        Ri <- solve(R)
         XRi <- X %*% Ri
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
+        XRiERiX <- apply(ij.mat,1,function(ij){
           E <- matrix(0,d,d)
           E[rbind(ij,rev(ij))] <- 1
-          sum((XRi %*% E) * XRi)
+          # sum((XRi %*% E) * XRi)
+          rowSums((XRi %*% E) * XRi)
         })
-        - nrow(X)*Ri[ij.mat] + XRiERiX/2
-      }
-      
-    )
+        
+        # return(- nrow(X)*Ri[ij.mat] + XRiERiX/2)
+        return(t(- Ri[ij.mat] + t(XRiERiX)/2))
   }
   
   if(distribution == "t4"){
-    return(
-      
-      function(X, params){
-        #params <- list(R, ij.mat)
-        d <- ncol(X)
+        R <- diag(d) + (1-diag(d))*sin(tau*pi/2)
         
-        Ri <- solve(params$R)
+        Ri <- solve(R)
         XRi <- X %*% Ri
         XRiX <- rowSums(XRi * X)
-        XRiERiX <- apply(params$ij.mat,1,function(ij){
+        XRiERiX <- apply(ij.mat,1,function(ij){
           E <- matrix(0,d,d)
           E[rbind(ij,rev(ij))] <- 1
-          sum(((XRi %*% E) * XRi)/(4 + XRiX))
+          # sum(((XRi %*% E) * XRi)/(4 + XRiX))
+          rowSums(((XRi %*% E) * XRi)/(4 + XRiX))
         })
-        - nrow(X)*Ri[params$ij.mat] + ((d+4)/2) * XRiERiX        }
-      
-    )
+        # return(- nrow(X)*Ri[ij.mat] + ((d+4)/2) * XRiERiX)
+        return(t(- Ri[ij.mat] + ((d+4)/2) * t(XRiERiX)))
   }
 
-  if(distribution == "clayton") return(scoreFunctionTOP(X, family = "clayton", params))
-  if(distribution == "gumbel") return(scoreFunctionTOP(X, family = "gumbel", params))
+  # artificially set the first component to zero. It will not get involved
+  if(distribution == "clayton") return(cbind(0,scoreFunctionTOP(X, family = "clayton", tau, departure)))
+  if(distribution == "gumbel") return(cbind(0,scoreFunctionTOP(X, family = "gumbel", tau, departure)))
 }
 
 
-X <- matrix(rnorm(7*10),10,7)
-
-
-
-scoreFunctionTOP <- function(X, family, params){
+scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
   
-  theta <- params$theta
+  if(is.vector(X)) X <- matrix(X, nrow=1)
   
   n <- nrow(X)
   d <- ncol(X)
@@ -72,7 +64,10 @@ scoreFunctionTOP <- function(X, family, params){
   # Specific functions
   ####################-----------------------------------------
   if(family == "clayton"){
+    
+    theta <- rep(tau2theta(tau,3),2)
     c <- 1
+    
     psi.s <- function(t, s) (1+t)^(-1/theta[s])
     psiI.s <- function(u, s) u^(-theta[s]) - 1
     psiPrime.s <- function(t, s, k) kFun(-1/theta[s],k) * (1+t)^(-k-1/theta[s]) # kth derivative w.r.t. t, see later for kFun
@@ -92,6 +87,8 @@ scoreFunctionTOP <- function(X, family, params){
     psiIPrimeDot.s <- function(u, s) u^(-theta[s]-1) * (theta[s] * log(u) - 1)
   }else if(family == "gumbel"){
     
+    theta <- rep(tau2theta(tau,1),2)
+    c <- 0
   }
   
   ###################------------------------------------------
@@ -105,7 +102,7 @@ scoreFunctionTOP <- function(X, family, params){
   
   sFun <- function(x,n,k) sapply(k:n, function(l) stirling1.lookup[n,l] * stirling2.lookup[l,k] * x^(l)) %>% sum
   # where
-  stirling1.ind <- lapply(d0:(d+1), function(n) expand.grid(n=n,l=1:n)) %>% do.call(what="rbind") %>% as.matrix
+  stirling1.ind <- lapply(1:(d+1), function(n) expand.grid(n=n,l=1:n)) %>% do.call(what="rbind") %>% as.matrix
   stirling2.ind <- lapply(1:d, function(k) expand.grid(l=k:d,k=k)) %>% do.call(what="rbind") %>% as.matrix
   stirling1.lookup <- matrix(NA, nrow=d+1, ncol=d+1)
   stirling2.lookup <- matrix(NA, nrow=d, ncol=d)
@@ -174,8 +171,9 @@ scoreFunctionTOP <- function(X, family, params){
   
   # lookup tables for atDot.s (within the apply calls below) would be the next step to improve speed.
   
-  T1Dot.eval <- apply(X,1,function(uu) T1Dot(list(uu[I1],uu[I2]))) %>% sum
-  T2Dot.eval <- apply(X[,I2],1,T2Dot) %>% sum
+  # T1Dot.eval <- apply(X,1,function(uu) T1Dot(list(uu[I1],uu[I2]))) %>% sum
+  # T2Dot.eval <- apply(X[,I2,drop=F],1,T2Dot) %>% sum
+  T1Dot.eval <- mclapply(1:nrow(X), function(k) T1Dot(list(X[k,I1],X[k,I2])), mc.cores = mc_cores) %>% unlist
+  T2Dot.eval <- apply(X[,I2,drop=F],1,T2Dot)
   T1Dot.eval + T2Dot.eval
-  
 }
