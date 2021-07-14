@@ -89,6 +89,26 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
     
     theta <- rep(tau2theta(tau,1),2)
     c <- 0
+    
+    psi.s <- function(t, s) exp(-t^(1/theta[s]))
+    psiI.s <- function(u, s) (-log(u))^theta[s]
+    psiPrime.s <- function(t, s, k) -exp(-t^(1/theta[s])) * t^(1/theta[s] - 1) / theta[s]
+    psiIPrime.s <- function(u, s) theta[s]/u * (-log(u))^(theta[s]-1)
+    
+    C.s <- function(uu.s, s) sapply(uu.s, psiI.s, s) %>% sum %>% psi.s(s = s)
+    C <- function(uus) sapply(seq_along(uus), function(s) C.s(uus[[s]], s)) %>% C.s(s=1)
+    
+    CDot.s <- function(uu.s, s) C.s(uu.s, s) * (-P4.A(uu.s, s)^P4.B(s)) *
+      (P4.BDot(s) * log(P4.A(uu.s, s)) + P4.B(s) * P4.ADot(uu.s, s) / P4.A(uu.s, s))
+    # where
+    P4.A <- function(uu.s, s) sapply(uu.s, function(u) (-log(u))^(theta[s])) %>% sum  
+    P4.B <- function(s) 1/theta[s]
+    P4.ADot <- function(uu.s, s) sapply(uu.s, function(u) (-log(u))^(theta[s]) * log(-log(u))) %>% sum
+    P4.BDot <- function(s) -1/theta[s]^2
+    
+    psiIDot.s <- function(u, s) (-log(u))^theta[s] * log(-log(u))
+    psiIPrimeDot.s <- function(u, s) (-log(u))^(theta[s]-1) / u * (theta[s] * log(-log(u)) + 1)
+
   }
   
   ###################------------------------------------------
@@ -140,7 +160,8 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
   E <- function(uu.s, s) c^theta[s] + t.s(uu.s, s=s)
   G <- function(s, n, k) theta[1]*k/theta[s] - n
   DDot <- function(uu.s, s, n, k) D(uu.s, s, n, k) * (GDot(k) * log(E(uu.s, s)) + G(s, n, k) * EDot(uu.s) / E(uu.s, s))
-  EDot <- function(uu.s) c^theta[2] * log(c) + (sapply(uu.s, psiIDot.s, s=2) %>% sum) # depend on the specific function psiIDot.s
+  if(c == 0) EDot <- function(uu.s) (sapply(uu.s, psiIDot.s, s=2) %>% sum) # depend on the specific function psiIDot.s
+  if(c > 0) EDot <- function(uu.s) c^theta[2] * log(c) + (sapply(uu.s, psiIDot.s, s=2) %>% sum) # depend on the specific function psiIDot.s
   GDot <- function(k) -theta[1]/theta[2]^2 * k
   #------------------------------------------------------------
   

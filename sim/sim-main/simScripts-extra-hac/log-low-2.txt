@@ -15,38 +15,29 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
 > 
 > # packages ----------------------------------------------------------------
 > library(data.table)
 > 
 > # functions ---------------------------------------------------------------
-> 
-> #**************#
-> ## ** BOOT ** ##
-> #**************#
-> source("simFuns/simFunLowBoot.R")
-> #**************#
-> ## ** BOOT ** ##
-> #**************#
+> source("simFuns/simFunLow2.R")
 > 
 > # procedure ---------------------------------------------------------------
 > 
 > tiime <- Sys.time()
-> simFunLowBoot(n = c(50,100,150),
-+        d = c(25),
-+        tau = c(0,.3,.6),
-+        dtau = c(0,.1,.2),
-+        distribution = c("t4"),
-+        num_sim = 1000,
-+        filename = "/store/samuel/testing-tau-extra/dt_main_low_4_t4",
-+        clus = 12
+> simFunLow2(n = c(50,100,150),
++           d = c(25),
++           tau = c(.3,.6),
++           dtau = c(0,.1,.2),
++           distribution = c("clayton", "gumbel"),
++           num_sim = 1000,
++           filename = "/store/samuel/testing-tau-extra/dt_main_low_2_hac",
++           clus = 5
 + )
 NULL
 > difftime(Sys.time(),tiime)
-Time difference of 43.59147 mins
+Time difference of 1.744249 days
 > 
 > proc.time()
-    user   system  elapsed 
-   2.356    0.463 2615.867 
+      user     system    elapsed 
+     5.651      0.808 150703.404 

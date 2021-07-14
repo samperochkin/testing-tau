@@ -15,6 +15,6 @@ simFunLow2(n = c(50,100,150),
           distribution = c("clayton", "gumbel"),
           num_sim = 1000,
           filename = "/store/samuel/testing-tau-extra/dt_main_low_2_hac",
-          clus = 3
+          clus = 5
 )
 difftime(Sys.time(),tiime)

@@ -35,18 +35,18 @@ Type 'q()' to quit R.
 > 
 > tiime <- Sys.time()
 > simFunLowBoot(n = c(50,100,150),
-+        d = c(25),
++        d = c(100),
 +        tau = c(0,.3,.6),
 +        dtau = c(0,.1,.2),
 +        distribution = c("t4"),
 +        num_sim = 1000,
 +        filename = "/store/samuel/testing-tau-extra/dt_main_low_4_t4",
-+        clus = 12
++        clus = 6
 + )
 NULL
 > difftime(Sys.time(),tiime)
-Time difference of 43.59147 mins
+Time difference of 14.00406 hours
 > 
 > proc.time()
-    user   system  elapsed 
-   2.356    0.463 2615.867 
+     user    system   elapsed 
+    2.525     0.401 50414.926 

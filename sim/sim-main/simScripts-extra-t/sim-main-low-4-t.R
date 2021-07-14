@@ -22,6 +22,6 @@ simFunLowBoot(n = c(50,100,150),
        distribution = c("t4"),
        num_sim = 1000,
        filename = "/store/samuel/testing-tau-extra/dt_main_low_4_t4",
-       clus = 6
+       clus = 12
 )
 difftime(Sys.time(),tiime)

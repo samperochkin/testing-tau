@@ -62,7 +62,7 @@ generateData <- function(n, d, tau, dtau, dtau_type, distribution){
       tree <- c(list(c(as.list(paste0(1:2)),tau2theta(tau+dtau,1))),c(as.list(paste0(3:d)),tau2theta(tau,1)))
       X <- rHAC(n, hac(1,tree))
     }else if(dtau_type == "column"){
-      tree <- list(list("1",tau2theta(tau+dtau,1)), c(as.list(paste0(2:d)),tau2theta(tau+dtau,1)), tau2theta(tau,1))
+      tree <- list("1", c(as.list(paste0(2:d)),tau2theta(tau+dtau,1)), tau2theta(tau,1))
       X <- rHAC(n, hac(1,tree))
     }
     

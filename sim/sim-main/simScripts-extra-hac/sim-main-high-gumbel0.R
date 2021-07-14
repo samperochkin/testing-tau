@@ -3,18 +3,18 @@
 library(data.table)
 
 # functions ---------------------------------------------------------------
-source("simFuns/simFunLow2.R")
+source("simFuns/simFunHigh2.R")
 
 # procedure ---------------------------------------------------------------
 
 tiime <- Sys.time()
-simFunLow2(n = c(50,100,150,250),
-       d = c(5,15),
-       tau = c(.3,.6),
+simFunHigh2(n = c(50,100,150),
+       d = c(50,100),
+       tau = c(0),
        dtau = c(0,.1,.2),
-       distribution = c("clayton", "gumbel"),
+       distribution = c("gumbel"),
        num_sim = 1000,
-       filename = "/store/samuel/testing-tau-extra/dt_main_low_1_hac",
-       clus = 5
+       filename = "/store/samuel/testing-tau-extra/dt_main_high_gumbel0",
+       clus = 4
 )
 difftime(Sys.time(),tiime)

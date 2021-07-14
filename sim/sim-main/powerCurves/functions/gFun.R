@@ -33,7 +33,7 @@ gFun <- function(X, distribution, tau){
   if(distribution == "gumbel"){
     gumbelCop <- gumbelCopula(tau2theta(tau,1))
     return(apply(ij.mat, 1, function(ij){
-      4*pCopula(X[,ij], gumbelCop) - 2*rowSums(X[,ij]) + 1 - tau
+      4*pCopula(X[,ij,drop=F], gumbelCop) - 2*rowSums(X[,ij,drop=F]) + 1 - tau
     }))
   }
 }
