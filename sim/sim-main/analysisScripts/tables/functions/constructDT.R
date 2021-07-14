@@ -18,8 +18,8 @@ contructDT <- function(fii, dis=NULL){
     dt0$Sh <- factor(dt0$Sh,levels = c("ShP","ShJ","SbP","SbJ"))
     
     dt0 <- dt0[S %in% c("Sh","I")]
-    dt0 <- dt0[,.("rejection_rate" = 100*mean(decision,na.rm=T), "pvalue_NA_rate" = mean(!is.na(pvalue)),
-          N = .N, psd_rate = mean(isShPsd), pd_rat = mean(isShPd)),
+    dt0 <- dt0[,.("rejection_rate" = 100*mean(decision,na.rm=T), "pvalue_NA_rate" = mean(is.na(pvalue)),
+          N = .N, psd_rate = mean(isShPsd), pd_rate = mean(isShPd)),
        by=c("n","d","tau","S","Sh","norm","dtau","dtau_type","distribution")]
     
     dt <- rbind(dt,dt0)
