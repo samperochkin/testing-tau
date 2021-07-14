@@ -1,8 +1,13 @@
-contructDT <- function(fii){
+contructDT <- function(fii, dis=NULL){
+  
+  if(is.null(dis)) dis <- c("normal", "t4", "hac", "clayton", "gumbel")
+  dis <- paste0("_", dis)
+  
+  iis <- lapply(dis, function(dd) grep(dd,fii))
+  iis <- iis[sapply(iis, length) > 0] 
   
   dt <- data.table()
-  for(dd in c("t4", "hac")){
-    ii <- grep(dd, fii)
+  for(ii in iis){
     dt0 <- rbindlist(lapply(fii[ii], fread), fill=T)
     
     dt0$dtau_type <- factor(dt0$dtau_type, level = c("none","single","column"))
