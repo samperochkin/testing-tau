@@ -14,30 +14,30 @@ resultsSize <- function(dt, dis){
                           dtau == dta & dtau_type == dtau_t &
                           tau %in% c(0,.3,.6) & Sh %in% Shs],
                     formula = Sh + d ~ tau + n,
-                    value.var = "level")
+                    value.var = "rejection_rate")
   
   xdt.Sh.M <- dcast(dt[norm == "Supremum" & S == "Sh" &
                           n %in% ns & d %in% ds &
                           dtau == dta & dtau_type == dtau_t &
                           tau %in% c(0,.3,.6) & Sh %in% Shs],
                     formula = Sh + d ~ tau + n,
-                    value.var = "level")
+                    value.var = "rejection_rate")
   
   xdt.I.E <- dcast(dt[norm == "Euclidean" & S == "I" &
                          n %in% ns & d %in% ds &
                          dtau == dta & dtau_type == dtau_t &
                          tau %in% c(0,.3,.6) & Sh %in% Shs],
                    formula = Sh + d ~ tau + n,
-                   value.var = "level")
+                   value.var = "rejection_rate")
   
   xdt.I.M <- dcast(dt[norm == "Supremum" & S == "I" &
                          n %in% ns & d %in% ds &
                          dtau == dta & dtau_type == dtau_t &
                          tau %in% c(0,.3,.6) & Sh %in% Shs],
                    formula = Sh + d ~ tau + n,
-                   value.var = "level")
+                   value.var = "rejection_rate")
   
   R <- round(rbind(xdt.Sh.E, xdt.Sh.M, xdt.I.E, xdt.I.M)[,-(1:2)],1)
-  if(distribution == "clayton") R <- cbind(0,0,0,R)
+  if(dis == "clayton") R <- cbind(0,0,0,R)
   R
 }

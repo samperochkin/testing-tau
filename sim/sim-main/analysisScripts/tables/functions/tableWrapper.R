@@ -1,9 +1,10 @@
 tableWrapper <- function(dt, grid_line){
   
-  distribution <- grid.line$distribution
-  dtau_type <- grid.line$dtau_type
-  dtau <- grid.line$dtau
-  Sh <- grid.line$Sh
+  distribution <- grid_line$distribution
+  dtau_type <- grid_line$dtau_type
+  dtau <- grid_line$dtau
+  Sh <- grid_line$Sh
+  M <- grid_line$min_N
   
   table_type <- ""
   if(dtau_type == "none") table_type <- paste0(table_type, "Size")
@@ -13,19 +14,19 @@ tableWrapper <- function(dt, grid_line){
   
   if(table_type == "Size"){
     R <- resultsSize(dt, distribution)
-    tableSize(R, M, distribution)
+    return(tableSize(R, M, distribution))
   } 
   if(table_type == "SizeStar"){
     R <- resultsSizeStar(dt, distribution)
-    tableSize(R, M, distribution)
+    return(tableSizeStar(R, M, distribution))
   } 
 
   if(table_type == "Power"){
     R <- resultsPower(dt, distribution, dtau)
-    tablePower(R, M, distribution, dtau)
+    return(tablePower(R, M, distribution, dtau))
   }
   if(table_type == "PowerStar"){
     R <- resultsPowerStar(dt, distribution, dtau, dtau_type)
-    tablePowerStar(R, M, distribution, dtau, dtau_type)
+    return(tablePowerStar(R, M, distribution, dtau, dtau_type))
   }
 }

@@ -19,7 +19,7 @@ tablePower <- function(R, M, distribution, dtau){
   
   cc <- cat("\\begin{table}[htbp]
  \\captionsetup{width=1\\linewidth,font=small,skip=0pt}
-    \caption{Estimated rejection rates of tests of $H_0$ with $\\B = \\bs{1}_p$ and $\\SA = (1/n)\\I_{p}$, performed at nominal level $5$\\%. Each entry is based on $",M,"$ $n \\times d$ datasets drawn from a ",distribution_text," with Kendall's tau matrix $\\bs{T}_\\Delta$ in Eq.~\\eqref{eq:departure} (a, single departure) or (b, column departure) with $\\Delta=", dtau ,"$; $\\bs{T}$ is as in Eq.~\\eqref{eq:T-equi-null}.}
+    \\caption{Estimated rejection rates of tests of $H_0$ with $\\B = \\bs{1}_p$ and $\\SA = (1/n)\\I_{p}$, performed at nominal level $5$\\%. Each entry is based on $",M,"$ $n \\times d$ datasets drawn from a ",distribution_text," with Kendall's tau matrix $\\bs{T}_\\Delta$ in Eq.~\\eqref{eq:departure} (a, single departure) or (b, column departure) with $\\Delta=", dtau ,"$; $\\bs{T}$ is as in Eq.~\\eqref{eq:T-equi-null}.}
       \\label{tab:sim-power1-", distribution,"}
       \\begin{center}
       \\fontsize{8.75}{8.75}\\selectfont
@@ -90,7 +90,7 @@ tablePower <- function(R, M, distribution, dtau){
       \\end{center}
       \\vskip-9pt
       \\small
-      Statistics: $E_{np}$ Euclidean norm-based statistic defined in Eq.~\\eqref{eq:euclidean}; $M_{np}$ supremum norm-based statistic defined in Eq.~\\eqref{eq:supremum}. Estimators: $\Sh_{np}^{\\rm P}$ plug-in estimator; $\\Sh_{np}^{\\rm J}$ jackknife estimator.
+      Statistics: $E_{np}$ Euclidean norm-based statistic defined in Eq.~\\eqref{eq:euclidean}; $M_{np}$ supremum norm-based statistic defined in Eq.~\\eqref{eq:supremum}. Estimators: $\\Sh_{np}^{\\rm P}$ plug-in estimator; $\\Sh_{np}^{\\rm J}$ jackknife estimator.
       \\end{table}"
       )
 }
