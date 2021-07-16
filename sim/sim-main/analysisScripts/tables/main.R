@@ -4,6 +4,8 @@ library(xtable)
 
 # data --------------------------------------------------------------------
 dt <- rbind(fread("sim/sim-main/results/dt_agg_normal.csv"),fread("sim/sim-main/results/results-extra/dt_agg.csv"))
+dt$Sh <- factor(dt$Sh, levels = c("ShP", "ShJ", "SbP", "SbJ"))
+
 dt_N <- dt[,unique(N),.(S,Sh,distribution)]
 dt_N
 dt_N <- dt[,.(min_N = min(N)),.(distribution)]
@@ -36,5 +38,12 @@ gridH0.star
 # construction of tables --------------------------------------------------
 sapply(list.files("sim/sim-main/analysisScripts/tables/functions",full.names = T), source)
 
-tableWrapper(dt, grid_line = gridH0.star[16])
+sapply(1:nrow(gridH0), function(k){
+  tableWrapper(dt, grid_line = gridH0[k])
+})
 
+
+tableWrapper(dt, grid_line = gridH0[2])
+tableWrapper(dt, grid_line = gridH0[5])
+tableWrapper(dt, grid_line = gridH0[9])
+tableWrapper(dt, grid_line = gridH0.star[17])

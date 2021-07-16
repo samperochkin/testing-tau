@@ -20,7 +20,7 @@ tableSizeStar <- function(R, M, distribution){
   cc <- cat("\\begin{table}[htbp]
  \\captionsetup{width=1\\linewidth,font=small,skip=0pt}
       \\caption{Estimated sizes (in \\%) for the tests of $H^*_0$ with $\\mathcal{G} = \\{\\{1,\\dots,d\\}\\}$ performed at the nominal level 5\\%. Each entry is based on $",M,"$ samples of size $n$ in dimension $d$ drawn from a ", distribution_text, " with Kendall's tau matrix $\\bs{T}$ is as in Eq.~\\eqref{eq:T-equi-null}.}
-      \\label{tab:sim-level-star-", distribution,"}
+      ",paste0("\\label{tab:sim-level-star-", distribution,"}"),"
       \\begin{center}
       \\fontsize{8.75}{8.75}\\selectfont
       \\vskip-12pt
@@ -91,6 +91,9 @@ tableSizeStar <- function(R, M, distribution){
       \\vskip-9pt
       \\small
       Statistics: $E_{np}$ Euclidean norm-based statistic defined in Eq. \\eqref{eq:euclidean}; $M_{np}$ supremum norm-based statistic defined in Eq. \\eqref{eq:supremum}. Estimators: $\\Sb_{np}^{\\rm P}$ structured plug-in estimator; $\\Sb_{np}^{\\rm J}$ structured jackknife estimator.
-      \\end{table}"
+      \\end{table}
+            
+            
+            "
       )
 }
