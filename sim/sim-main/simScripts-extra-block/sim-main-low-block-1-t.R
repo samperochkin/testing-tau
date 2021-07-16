@@ -4,8 +4,7 @@ library(data.table)
 
 # functions ---------------------------------------------------------------
 #setwd("sim-main")
-#source("simFuns/simFunLowBlock.R")
-source("simFunLowBlock.R")
+source("simFuns/simFunLowBlock.R")
 
 # procedure ---------------------------------------------------------------
 
@@ -18,9 +17,9 @@ simFunLowBlock(n = c(50,150,250),
           d = c(6,12,18),
           design = c("balanced","unbalanced"),
           dtau = c(0,.1,.2),
-          distribution = c("t"),
+          distribution = c("t4"),
           num_sim = 1000,
-          filename = "dt_main_low_block_1",
+          filename = "/store/samuel/testing-tau-extra/dt_main_low_block_1",
           cl = 12
 )
 difftime(Sys.time(),tiime)

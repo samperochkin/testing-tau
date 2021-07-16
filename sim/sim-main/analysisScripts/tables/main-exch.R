@@ -3,7 +3,7 @@ library(xtable)
 
 
 # data --------------------------------------------------------------------
-dt <- rbind(fread("sim/sim-main/results/dt_agg_normal.csv"),fread("sim/sim-main/results/results-extra/dt_agg.csv"))
+dt <- fread("sim/sim-main/results/dt_exch.csv")
 dt$Sh <- factor(dt$Sh, levels = c("ShP", "ShJ", "SbP", "SbJ"))
 
 dt_N <- dt[,unique(N),.(S,Sh,distribution)]

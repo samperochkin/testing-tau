@@ -1,0 +1,43 @@
+
+R version 4.0.3 (2020-10-10) -- "Bunny-Wunnies Freak Out"
+Copyright (C) 2020 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> # packages ----------------------------------------------------------------
+> library(data.table)
+> 
+> # functions ---------------------------------------------------------------
+> #setwd("sim-main")
+> source("simFuns/simFunLowBlock.R")
+> 
+> # procedure ---------------------------------------------------------------
+> 
+> # set wd appropriately and
+> # launch with nohup R CMD BATCH sim-low-dim.R log.txt &
+> # should take much less than a day
+> 
+> tiime <- Sys.time()
+> simFunLowBlock(n = c(50,150,250),
++           d = c(6,12,18),
++           design = c("balanced","unbalanced"),
++           dtau = c(0,.1,.2),
++           distribution = c("t4"),
++           num_sim = 1000,
++           filename = "/store/samuel/testing-tau-extra/dt_main_low_block_1",
++           cl = 12
++ )
