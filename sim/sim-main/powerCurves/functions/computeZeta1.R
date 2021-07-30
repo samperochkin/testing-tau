@@ -22,5 +22,5 @@ computeZeta1 <- function(zeta1.line, N){
   
   gs <- gFun(X, distribution, tau)
   scores <- scoreFunction(X, distribution, tau, dtau_type)
-  c((Reduce("+", lapply(1:N, function(s) tcrossprod(gs[s,],scores[s,])))/N) %*% h)
+  c((Reduce("+", lapply(1:N, function(s) 2 * tcrossprod(gs[s,],scores[s,])))/N) %*% h)
 }

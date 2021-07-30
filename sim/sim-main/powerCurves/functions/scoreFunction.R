@@ -92,13 +92,14 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
     
     psi.s <- function(t, s) exp(-t^(1/theta[s]))
     psiI.s <- function(u, s) (-log(u))^theta[s]
-    psiPrime.s <- function(t, s, k) -exp(-t^(1/theta[s])) * t^(1/theta[s] - 1) / theta[s]
-    psiIPrime.s <- function(u, s) theta[s]/u * (-log(u))^(theta[s]-1)
+    # psiPrime.s <- function(t, s, k) -exp(-t^(1/theta[s])) * t^(1/theta[s] - 1) / theta[s]
+    psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) sFun(1/theta[s], k, j)*(-1/theta[s])^j))
+    psiIPrime.s <- function(u, s) -theta[s]/u * (-log(u))^(theta[s]-1)
     
     C.s <- function(uu.s, s) sapply(uu.s, psiI.s, s) %>% sum %>% psi.s(s = s)
     C <- function(uus) sapply(seq_along(uus), function(s) C.s(uus[[s]], s)) %>% C.s(s=1)
     
-    CDot.s <- function(uu.s, s) C.s(uu.s, s) * (-P4.A(uu.s, s)^P4.B(s)) *
+    CDot.s <- function(uu.s, s) C.s(uu.s, s) * (- P4.A(uu.s, s)^P4.B(s)) *
       (P4.BDot(s) * log(P4.A(uu.s, s)) + P4.B(s) * P4.ADot(uu.s, s) / P4.A(uu.s, s))
     # where
     P4.A <- function(uu.s, s) sapply(uu.s, function(u) (-log(u))^(theta[s])) %>% sum  
@@ -107,7 +108,7 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
     P4.BDot <- function(s) -1/theta[s]^2
     
     psiIDot.s <- function(u, s) (-log(u))^theta[s] * log(-log(u))
-    psiIPrimeDot.s <- function(u, s) (-log(u))^(theta[s]-1) / u * (theta[s] * log(-log(u)) + 1)
+    psiIPrimeDot.s <- function(u, s) - (-log(u))^(theta[s]-1) / u * (theta[s] * log(-log(u)) + 1)
 
   }
   
@@ -123,9 +124,9 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
   sFun <- function(x,n,k) sapply(k:n, function(l) stirling1.lookup[n,l] * stirling2.lookup[l,k] * x^(l)) %>% sum
   # where
   stirling1.ind <- lapply(1:(d+1), function(n) expand.grid(n=n,l=1:n)) %>% do.call(what="rbind") %>% as.matrix
-  stirling2.ind <- lapply(1:d, function(k) expand.grid(l=k:d,k=k)) %>% do.call(what="rbind") %>% as.matrix
+  stirling2.ind <- lapply(1:(d+1), function(k) expand.grid(l=k:(d+1),k=k)) %>% do.call(what="rbind") %>% as.matrix
   stirling1.lookup <- matrix(NA, nrow=d+1, ncol=d+1)
-  stirling2.lookup <- matrix(NA, nrow=d, ncol=d)
+  stirling2.lookup <- matrix(NA, nrow=d+1, ncol=d+1)
   stirling1.lookup[stirling1.ind] <- mapply(FUN = function(n,l) copula::Stirling1(n,l), stirling1.ind[,1], stirling1.ind[,2])
   stirling2.lookup[stirling2.ind] <- mapply(FUN = function(l,k) copula::Stirling2(l,k), stirling2.ind[,1], stirling2.ind[,2])
   

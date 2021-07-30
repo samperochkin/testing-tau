@@ -23,30 +23,19 @@ Type 'q()' to quit R.
 > 
 > # functions ---------------------------------------------------------------
 > 
-> #**************#
-> ## ** BOOT ** ##
-> #**************#
-> source("simFuns/simFunLowBoot.R")
-> #**************#
-> ## ** BOOT ** ##
-> #**************#
+> source("simFuns/simFunLow2.R")
 > 
 > # procedure ---------------------------------------------------------------
 > 
 > tiime <- Sys.time()
-> simFunLowBoot(n = c(50,100,150),
-+        d = c(50),
-+        tau = c(0),
-+        dtau = c(0,.1,.2),
-+        distribution = c("gumbel"),
+> simFunLow2(n = c(250),
++        d = c(25),
++        tau = c(0,.3,.6),
++        dtau = c(0),
++        distribution = c("gumbel","clayton"),
 +        num_sim = 1000,
-+        filename = "/store/samuel/testing-tau-extra/dt_main_boot_3_gumbel0",
-+        clus = 14
++        filename = "/store/samuel/testing-tau-extra/dt_main_low_7_hac",
++        clus = 10
 + )
-NULL
-> difftime(Sys.time(),tiime)
-Time difference of 46.56412 mins
-> 
-> proc.time()
-    user   system  elapsed 
-   0.983    0.248 2794.135 
+
+Execution halted

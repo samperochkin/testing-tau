@@ -9,13 +9,13 @@ library(pcaPP)
 library(parallel)
 
 # Setup -------------------------------------------------------------------
-
+mc_cores <- 12
 
 #*************** IMPORTANT TUNING PARAMETER
 run.id <- 1 
 large.n <- 1000 # for asymptotic results..
-M <- 1000
-epsilon <- seq(0,20,.2)
+M <- 5000
+epsilon <- seq(0,7.5,.1)
 
 
 ################
@@ -24,8 +24,8 @@ epsilon <- seq(0,20,.2)
 # d <- c(5,25,50)
 d <- c(5)
 # tau <- c(0,.25,.5,.75)
-tau <- c(0,.5)
-distribution <- c("normal","t4","clayton")
+tau <- c(.25)
+distribution <- c("normal","t4","clayton","gumbel")
 
 distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
 distribution.grid <- distribution.grid[!(distribution %in% c("clayton","gumbel") & tau == 0)]
@@ -48,7 +48,8 @@ departure.grid[, departure_id := 1:nrow(departure.grid)]
 ###################
 # test statistics #
 ###################
-S <- c("I", "Sh")
+# S <- c("I", "Sh")
+S <- c("Sh")
 # norm = c("Euclidean", "Supremum")
 
 # stat.grid <- as.data.table(expand.grid(S=S, norm=norm))
@@ -71,7 +72,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 1000
+N <- 5000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 
 if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/sigma_list_",run.id,".rds"))){
@@ -95,7 +96,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/sigma_list_",run.i
     sb <- averageSigma(Sh, l.mat, full=F)
     
     return(sb)
-  }, mc.cores = 6)
+  }, mc.cores = mc_cores)
   saveRDS(sigma.list, paste0("sim/sim-main/powerCurves/pre-computed/sigma_list_",run.id,".rds"))
 }else{
   sigma.list <- readRDS(paste0("sim/sim-main/powerCurves/pre-computed/sigma_list_",run.id,".rds"))
@@ -134,7 +135,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/Sigma_list_",run.i
   
   Sigma.list <- mclapply(1:nrow(distribution.grid), function(i){
     expandSigma(sigma.list[[distribution.grid[i]$sigma_id]],distribution.grid[i]$d)
-  }, mc.cores = 6)
+  }, mc.cores = mc_cores)
   
   saveRDS(Sigma.list, paste0("sim/sim-main/powerCurves/pre-computed/Sigma_list_",run.id,".rds"))
   
@@ -175,7 +176,7 @@ S.star.list <- mclapply(1:nrow(S.star.grid), function(i){
   G <- matrix(colSums(Si),p,p,byrow=T) / sum(Si)
   IG <- diag(p)-G
   Si2 %*% IG %*% Sigma2
-}, mc.cores = 6)
+}, mc.cores = mc_cores)
 
 
 
@@ -195,7 +196,7 @@ generateMCQuantile <- function(S.star, norm, Mq = M, probs = c(.9,.95,.975,.99,.
 
 quantiles.list <- mclapply(1:nrow(quantiles.grid), function(i){
   generateMCQuantile(S.star = S.star.list[[quantiles.grid[i]$S_star_id]], norm = quantiles.grid[i]$norm)
-}, mc.cores = 6)
+}, mc.cores = mc_cores)
 
 
 
@@ -264,14 +265,15 @@ mclapply(1:nrow(full.grid), function(i){
     sup <- apply(abs(ZZ),2,max)
     
     rbind(cbind(full.line, quant.grid, epsilon = eps, norm="Euclidean", power = sapply(quant.grid$quantile_id, function(k) mean(euc > quantiles$Euclidean[k]))),
-          cbind(full.line, quant.grid, epsilon = eps, norm="Sumpremum", power = sapply(quant.grid$quantile_id, function(k) mean(sup > quantiles$Supremum[k]))))
+          cbind(full.line, quant.grid, epsilon = eps, norm="Supremum", power = sapply(quant.grid$quantile_id, function(k) mean(sup > quantiles$Supremum[k]))))
   }))
   
   fwrite(res.grid, paste0("sim/sim-main/powerCurves/results/res_grid_",run.id,"_",i,".csv"))
-}, mc.cores = 6)
+}, mc.cores = mc_cores)
 
 
-res.grid <- rbindlist(lapply(list.files("sim/sim-main/powerCurves/results/",full.names = T), fread))
+res.grid <- rbindlist(lapply(list.files("sim/sim-main/powerCurves/results",full.names = T), fread))
+res.grid[distribution == "gumbel"]
 
 library(ggplot2)
 al <- .1
