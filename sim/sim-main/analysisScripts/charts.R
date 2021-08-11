@@ -1,7 +1,7 @@
 library(data.table)
 library(ggplot2)
 
-dt <- fread("sim/sim-main/results/dt_agg_full.csv")
+dt <- fread("sim/sim-main/results/dt_exch_full.csv")
 
 
 

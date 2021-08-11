@@ -21,7 +21,7 @@ tablePowerStar <- function(R, M, distribution, dtau, dtau_type){
   
   cc <- cat("\\begin{table}[htbp]
  \\captionsetup{width=1\\linewidth,font=small,skip=0pt}
-Estimated rejection rates of tests of $H_0^*$ with $\\mathcal{G}=\\{\\{1,\\ldots,d\\}\\}$ performed at nominal level $5$\\%. Each entry is based on $",M,"$ $n \\times d$ datasets drawn from a ",distribution_text," with Kendall's tau matrix $\\bs{T}_{\\Delta}$ in Eq.~\\eqref{eq:departure} (i) with $\\Delta = ",dtau,"$; $\\bs{T}$ is as in Eq.~\\eqref{eq:T-equi-null}.
+\\caption{Estimated rejection rates of tests of $H_0^*$ with $\\mathcal{G}=\\{\\{1,\\ldots,d\\}\\}$ performed at nominal level $5$\\%. Each entry is based on $",M,"$ $n \\times d$ datasets drawn from a ",distribution_text," with Kendall's tau matrix $\\bs{T}_{\\Delta}$ in Eq.~\\eqref{eq:departure} (i) with $\\Delta = ",dtau,"$; $\\bs{T}$ is as in Eq.~\\eqref{eq:T-equi-null}.}
       ",paste0("\\label{tab:sim-power-star-", dtau_type,"-", dtau_id,"-", distribution,"}"),"
       \\begin{center}
       \\fontsize{8.75}{8.75}\\selectfont

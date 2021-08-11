@@ -9,7 +9,7 @@ resultsSizeBlock <- function(dt, dis){
   Shs <- c("ShP","ShJ")
   
   xdt <- dcast(dt[S == "I" &
-                    n %in% c(50,150,250) & d %in% c(5,15) &
+                    n %in% ns & d %in% ds &
                     dtau == dta & Sh %in% Shs],
                   formula = Sh + d ~ norm + design + n,
                   value.var = "rejection_rate")

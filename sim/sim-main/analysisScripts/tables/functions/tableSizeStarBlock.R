@@ -1,4 +1,4 @@
-tableSizeStar <- function(R, M, distribution){
+tableSizeStarBlock <- function(R, M, distribution){
   
   if(distribution == "normal") distribution_text <- "Normal distribution"
   if(distribution == "t4") distribution_text <- "$t_4$ distribution"

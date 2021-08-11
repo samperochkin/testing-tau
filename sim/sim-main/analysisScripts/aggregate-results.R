@@ -15,4 +15,5 @@ fwrite(dt, "sim/sim-main/results/dt_exch_normal.csv")
 
 dt <- rbind(dt,fread("sim/sim-main/results/results-extra/dt_exch_cc.csv"))
 print(object.size(dt), units = "MB")
+dt[dtau_type == "", dtau_type := "none"]
 fwrite(dt, "sim/sim-main/results/dt_exch_full.csv")

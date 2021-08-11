@@ -1,0 +1,122 @@
+
+> library(data.table)
+
+> library(xtable)
+
+> # data --------------------------------------------------------------------
+> dt <- fread("sim/sim-main/results/dt_block_full.csv")
+
+> dt$Sh <- factor(dt$Sh, levels = c("ShP", "ShJ", "SbP", "SbJ"))
+
+> dt_N <- dt[,unique(N),.(S,Sh,distribution)]
+
+> dt_N
+     S  Sh distribution   V1
+ 1: Sh ShP       normal 2500
+ 2:  I ShP       normal 2500
+ 3: Sh SbP       normal 2500
+ 4:  I SbP       normal 2500
+ 5: Sh ShJ       normal 2500
+ 6:  I ShJ       normal 2500
+ 7: Sh SbJ       normal 2500
+ 8:  I SbJ       normal 2500
+ 9: Sh ShP           t4 1000
+10:  I ShP           t4 1000
+11: Sh SbP           t4 1000
+12:  I SbP           t4 1000
+13: Sh ShJ           t4 1000
+14:  I ShJ           t4 1000
+15: Sh SbJ           t4 1000
+16:  I SbJ           t4 1000
+
+> dt_N <- dt[,.(min_N = min(N)),.(distribution)]
+
+> # table content -----------------------------------------------------------
+> 
+> #********
+> #******** To be worked out
+> #********
+> #********
+> 
+> gridH0 <- expand.grid(distribution = c("normal", "t4"),
++                       dtau = c(0,.1)) %>% as.data.table
+
+> gridH0 <- merge(gridH0,dt_N, by="distribution")
+
+> gridH0$Sh <- "Sh"
+
+> gridH0$distribution <- factor(gridH0$distribution, levels = c("normal", "t4"))
+
+> setorder(gridH0,dtau,distribution)
+
+> gridH0.star <- copy(gridH0)
+
+> gridH0.star$Sh <- "Sb"  
+
+> # construction of tables --------------------------------------------------
+> sapply(list.files("sim/sim-main/analysisScripts/tables/functions",full.names = T), source)
+        sim/sim-main/analysisScripts/tables/functions/constructDT.R
+value   ?                                                          
+visible FALSE                                                      
+        sim/sim-main/analysisScripts/tables/functions/resultsPower.R
+value   ?                                                           
+visible FALSE                                                       
+        sim/sim-main/analysisScripts/tables/functions/resultsPowerBlock.R
+value   ?                                                                
+visible FALSE                                                            
+        sim/sim-main/analysisScripts/tables/functions/resultsPowerStar.R
+value   ?                                                               
+visible FALSE                                                           
+        sim/sim-main/analysisScripts/tables/functions/resultsPowerStarBlock.R
+value   ?                                                                    
+visible FALSE                                                                
+        sim/sim-main/analysisScripts/tables/functions/resultsSize.R
+value   ?                                                          
+visible FALSE                                                      
+        sim/sim-main/analysisScripts/tables/functions/resultsSizeBlock.R
+value   ?                                                               
+visible FALSE                                                           
+        sim/sim-main/analysisScripts/tables/functions/resultsSizeStar.R
+value   ?                                                              
+visible FALSE                                                          
+        sim/sim-main/analysisScripts/tables/functions/resultsSizeStarBlock.R
+value   ?                                                                   
+visible FALSE                                                               
+        sim/sim-main/analysisScripts/tables/functions/tableBlockWrapper.R
+value   ?                                                                
+visible FALSE                                                            
+        sim/sim-main/analysisScripts/tables/functions/tablePower.R
+value   ?                                                         
+visible FALSE                                                     
+        sim/sim-main/analysisScripts/tables/functions/tablePowerBlock.R
+value   ?                                                              
+visible FALSE                                                          
+        sim/sim-main/analysisScripts/tables/functions/tablePowerStar.R
+value   ?                                                             
+visible FALSE                                                         
+        sim/sim-main/analysisScripts/tables/functions/tablePowerStarBlock.R
+value   ?                                                                  
+visible FALSE                                                              
+        sim/sim-main/analysisScripts/tables/functions/tableSize.R
+value   ?                                                        
+visible FALSE                                                    
+        sim/sim-main/analysisScripts/tables/functions/tableSizeBlock.R
+value   ?                                                             
+visible FALSE                                                         
+        sim/sim-main/analysisScripts/tables/functions/tableSizeStar.R
+value   ?                                                            
+visible FALSE                                                        
+        sim/sim-main/analysisScripts/tables/functions/tableSizeStarBlock.R
+value   ?                                                                 
+visible FALSE                                                             
+        sim/sim-main/analysisScripts/tables/functions/tableWrapper.R
+value   ?                                                           
+visible FALSE                                                       
+
+> grid <- rbind(gridH0,gridH0.star)
+
+> sapply(1:nrow(grid), function(k){
++   tableBlockWrapper(dt, grid_line = grid[k])
++ })
+Error in dcast.data.table(dt[S == "I" & n %in% c(50, 150, 250) & d %in%  : 
+  Can not cast an empty data.table

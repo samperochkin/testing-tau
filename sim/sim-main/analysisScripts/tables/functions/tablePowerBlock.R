@@ -1,4 +1,4 @@
-tableSizeStar <- function(R, M, distribution, dtau){
+tablePowerBlock <- function(R, M, distribution, dtau){
   
   if(distribution == "normal") distribution_text <- "Normal distribution"
   if(distribution == "t4") distribution_text <- "$t_4$ distribution"
