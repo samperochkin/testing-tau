@@ -43,7 +43,7 @@ scoreFunction <- function(X, distribution = "normal", tau, departure = NULL){
 }
 
 
-scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
+scoreFunctionTOP <- function(X, family, tau, departure){
   
   if(is.vector(X)) X <- matrix(X, nrow=1)
   
@@ -195,7 +195,7 @@ scoreFunctionTOP <- function(X, family, tau, departure, mc_cores = 4){
   
   # T1Dot.eval <- apply(X,1,function(uu) T1Dot(list(uu[I1],uu[I2]))) %>% sum
   # T2Dot.eval <- apply(X[,I2,drop=F],1,T2Dot) %>% sum
-  T1Dot.eval <- mclapply(1:nrow(X), function(k) T1Dot(list(X[k,I1],X[k,I2])), mc.cores = mc_cores) %>% unlist
+  T1Dot.eval <- lapply(1:nrow(X), function(k) T1Dot(list(X[k,I1],X[k,I2]))) %>% unlist
   T2Dot.eval <- apply(X[,I2,drop=F],1,T2Dot)
   T1Dot.eval + T2Dot.eval
 }
