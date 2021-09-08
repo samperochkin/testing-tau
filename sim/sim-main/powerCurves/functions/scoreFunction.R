@@ -42,7 +42,7 @@ scoreFunction <- function(X, distribution = "normal", tau, departure = NULL){
   if(distribution == "gumbel") return(cbind(0,scoreFunctionTOP(X, family = "gumbel", tau, departure)))
 }
 
-
+library(magrittr)
 scoreFunctionTOP <- function(X, family, tau, departure){
   
   if(is.vector(X)) X <- matrix(X, nrow=1)
@@ -181,7 +181,15 @@ scoreFunctionTOP <- function(X, family, tau, departure){
   
   T1Dot.num <- function(uus) sapply(d0:d, function(k) T1.ADot(uus, k)) %>% sum 
   T1Dot.denum <- function(uus) sapply(d0:d, function(k) T1.A(uus, k)) %>% sum 
-  T1Dot <- function(uus) T1Dot.num(uus)/T1Dot.denum(uus)
+  T1Dot <- function(uus){
+    # avoid dividing by T1Dot.denum(uus), which is pretty unstable for very small values of uus.
+    # might introduce some bias
+    # if(identical(T1Dot.num(uus),0)){
+    #   print("Hit a bad run in scoreFunctionTOP")
+    #   return(0)
+    # } 
+    T1Dot.num(uus)/T1Dot.denum(uus)
+  }
   
   T2Dot <- function(uu.2) sapply(uu.2, function(u) psiIPrimeDot.s(u, s=2) / psiIPrime.s(u, s=2)) %>% sum 
   #------------------------------------------------------------

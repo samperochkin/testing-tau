@@ -13,7 +13,7 @@ mc_cores <- 12
 
 #*************** IMPORTANT TUNING PARAMETER
 run.id <- 1 
-large.n <- 1000 # for asymptotic results..
+large.n <- 10000 # for asymptotic results..
 M <- 5000
 epsilon <- seq(0,7.5,.1)
 
@@ -22,7 +22,7 @@ epsilon <- seq(0,7.5,.1)
 # distribution #
 ################
 # d <- c(5,25,50)
-d <- c(5)
+# d <- c(5)
 # tau <- c(0,.25,.5,.75)
 tau <- c(.25)
 distribution <- c("normal","t4","clayton","gumbel")
@@ -48,11 +48,9 @@ departure.grid[, departure_id := 1:nrow(departure.grid)]
 ###################
 # test statistics #
 ###################
-# S <- c("I", "Sh")
-S <- c("Sh")
-# norm = c("Euclidean", "Supremum")
+S <- c("I", "Sh")
+# S <- c("Sh")
 
-# stat.grid <- as.data.table(expand.grid(S=S, norm=norm))
 stat.grid <- as.data.table(expand.grid(S=S))
 stat.grid[,stat_id := 1:nrow(stat.grid)]
 
@@ -72,7 +70,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 5000
+N <- 10000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 
 if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/sigma_list_",run.id,".rds"))){
@@ -217,7 +215,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/zeta1_list_",run.i
   source("sim/sim-main/powerCurves/functions/computeZeta1.R")
   
   zeta1.list <- list()
-  for(i in zeta1.grid$zeta1_id) zeta1.list[[i]] <- computeZeta1(zeta1.grid[i,], N=1000) # it calls mclapply inside (for hacs)
+  for(i in zeta1.grid$zeta1_id) zeta1.list[[i]] <- computeZeta1(zeta1.grid[i,], N=10) # it calls mclapply inside (for hacs)
   saveRDS(zeta1.list, paste0("sim/sim-main/powerCurves/pre-computed/zeta1_list_",run.id,".rds"))
   
 }else{
@@ -272,21 +270,21 @@ mclapply(1:nrow(full.grid), function(i){
 }, mc.cores = mc_cores)
 
 
-res.grid <- rbindlist(lapply(list.files("sim/sim-main/powerCurves/results",full.names = T), fread))
-res.grid[distribution == "gumbel"]
-
-library(ggplot2)
-al <- .1
-ggplot(res.grid[round(alpha,3)==al & d == 5], aes(x=epsilon, y=power, col=norm, linetype=S)) +
-  theme_light() +
-  geom_line() +
-  geom_hline(yintercept=al, lty=2) +
-  ylim(c(0,1)) +
-  facet_grid(distribution~dtau_type+tau)
-
-
-rr <- res.grid[round(alpha,3)==al & dtau_type == "single" & d == 5 & norm == "Euclidean" & S == "I" & distribution == "normal" & tau == 0]
-rr[,]
+# res.grid <- rbindlist(lapply(list.files("sim/sim-main/powerCurves/results",full.names = T), fread))
+# res.grid[distribution == "gumbel"]
+# 
+# library(ggplot2)
+# al <- .1
+# ggplot(res.grid[round(alpha,3)==al & d == 5], aes(x=epsilon, y=power, col=norm, linetype=S)) +
+#   theme_light() +
+#   geom_line() +
+#   geom_hline(yintercept=al, lty=2) +
+#   ylim(c(0,1)) +
+#   facet_grid(distribution~dtau_type+tau)
+# 
+# 
+# rr <- res.grid[round(alpha,3)==al & dtau_type == "single" & d == 5 & norm == "Euclidean" & S == "I" & distribution == "normal" & tau == 0]
+# rr[,]
 
 # 
 # ggplot(full.grid[norm == "Euclidean"], aes(x=epsilon, y=power, col=as.factor(round(alpha,3)))) + 
