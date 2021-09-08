@@ -1,6 +1,5 @@
 library(magrittr)
 library(data.table)
-library(xtable)
 
 
 # data --------------------------------------------------------------------
@@ -12,42 +11,33 @@ dt_N
 dt_N <- dt[,.(min_N = min(N)),.(distribution)]
 
 # table content -----------------------------------------------------------
-gridH0 <- rbind(
-  expand.grid(distribution = c("normal", "t4", "clayton", "gumbel"),
-              dtau_type = c("none"), dtau = 0),
-  expand.grid(distribution = c("normal", "t4", "clayton", "gumbel"),
-              dtau_type = c("departure"), dtau = c(.1,.2))
-) %>% as.data.table
-gridH0 <- merge(gridH0,dt_N, by="distribution")
-gridH0$Sh <- "Sh"
-gridH0$distribution <- factor(gridH0$distribution, levels = c("normal", "t4", "gumbel", "clayton"))
-setorder(gridH0,dtau,distribution)
+distributions <- c("normal", "t4", "gumbel", "clayton")
 
-gridH0.star <- rbind(
-  expand.grid(distribution = c("normal", "t4", "clayton", "gumbel"),
-              dtau_type = c("none"), dtau = 0),
-  expand.grid(distribution = c("normal", "t4", "clayton", "gumbel"),
-              dtau_type = c("single", "column"), dtau = c(.1,.2))
-) %>% as.data.table
-gridH0.star <- merge(gridH0.star, dt_N, by="distribution")
-gridH0.star$Sh <- "Sb"
-gridH0.star$distribution <- factor(gridH0.star$distribution, levels = c("normal", "t4", "gumbel", "clayton"))
-gridH0.star$dtau_type <- factor(gridH0.star$dtau_type, levels = c("none", "single", "column"))
-setorder(gridH0.star,dtau_type,dtau,distribution)
-gridH0.star
-
-# construction of tables --------------------------------------------------
-sapply(list.files("sim/sim-main/analysisScripts/tables/functions",full.names = T), source)
-
-grid <- rbind(gridH0,gridH0.star)
-
-sapply(1:nrow(grid), function(k){
-  grid_line <- grid[k]
-  tableWrapper(dt, grid_line)
+lapply(distributions, function(dis){
+  
+  dt <- dt[distribution == dis]
+  
+  ## size - H0
+  ns <- c(50,100,150)
+  ds <- c(5,15,25,50,100)
+  dta <- 0
+  dtau_t <- "none"
+  Shs <- c("ShP","ShJ")
+  
+  xdt.Sh.E <- dcast(dt[norm == "Euclidean" & S == "Sh" &
+                         n %in% c(50,150,250) & d %in% c(5,15) &
+                         dtau == dta & dtau_type == dtau_t &
+                         tau %in% c(0,.3,.6) & Sh %in% Shs],
+                    formula = Sh + d ~ tau + n,
+                    value.var = "pd_rate")
+  
+  xdt.Sh.M <- dcast(dt[norm == "Supremum" & S == "Sh" &
+                         n %in% c(50,150,250) & d %in% c(5,15) &
+                         dtau == dta & dtau_type == dtau_t &
+                         tau %in% c(0,.3,.6) & Sh %in% Shs],
+                    formula = Sh + d ~ tau + n,
+                    value.var = "pd_rate")
+  
+  rbind(xdt.Sh.E,xdt.Sh.M)
 })
 
-# tableWrapper(dt, grid_line = gridH0[2])
-# tableWrapper(dt, grid_line = gridH0[5])
-# tableWrapper(dt, grid_line = gridH0[9])
-# tableWrapper(dt, grid_line = gridH0.star[1])
-# tableWrapper(dt, grid_line = gridH0.star[17])
