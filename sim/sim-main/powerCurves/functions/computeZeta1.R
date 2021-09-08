@@ -2,6 +2,7 @@ computeZeta1 <- function(zeta1.line, N){
   d <- zeta1.line$d
   p <- choose(d,2)
   distribution <- zeta1.line$distribution
+  tau <- zeta1.line$tau
   dtau_type <- zeta1.line$dtau_type
   
   if(distribution %in% c("normal", "t4")){
@@ -12,15 +13,15 @@ computeZeta1 <- function(zeta1.line, N){
     
   }else if(distribution %in% c("clayton", "gumbel")){
     h <- c(0,1)  # --------------------------------------------------------------- SAME
-    if(distribution == "clayton") h <- h*2/(1-zeta1.line$tau)^2
-    if(distribution == "gumbel") h <- h/(1-zeta1.line$tau)^2
+    if(distribution == "clayton") h <- h*2/(1-tau)^2
+    if(distribution == "gumbel") h <- h/(1-tau)^2
   }
   
   # generate X
-  tau <- zeta1.line$tau
   X <- generateData(n=N, d=d, tau=tau, dtau=0, dtau_type="none", distribution=distribution)
   
   gs <- gFun(X, distribution, tau)
   scores <- scoreFunction(X, distribution, tau, dtau_type)
   c((Reduce("+", lapply(1:N, function(s) 2 * tcrossprod(gs[s,],scores[s,])))/N) %*% h)
+  
 }
