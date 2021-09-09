@@ -9,8 +9,9 @@ library(ggplot2)
 
 # Load results ------------------------------------------------------------
 
-filenames <- list.files("sim/sim-main/powerCurves/results", recursive = T, full.names = T)
-full.grid <- rbindlist(lapply(filenames, fread))
+# filenames <- list.files("sim/sim-main/powerCurves/results", recursive = T, full.names = T)
+# full.grid <- rbindlist(lapply(filenames, fread))
+full.grid <- fread("sim/sim-main/powerCurves/results.csv")
 
 
 
@@ -31,6 +32,7 @@ names(tau_labels) <- taus
 
 
 full.grid <- full.grid[round(alpha,3)==al & d %in% ds & tau %in% taus]
+full.grid$distribution <- factor(full.grid$distribution, levels = c("normal", "t4", "gumbel", "clayton"))
 
 # Comparison of distributions ---------------------------------------------
 
