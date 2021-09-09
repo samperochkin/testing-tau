@@ -70,9 +70,10 @@ scoreFunctionTOP <- function(X, family, tau, departure){
     
     psi.s <- function(t, s) (1+t)^(-1/theta[s])
     psiI.s <- function(u, s) u^(-theta[s]) - 1
-    psiPrime.s <- function(t, s, k) kFun(-1/theta[s],k) * (1+t)^(-k-1/theta[s]) # kth derivative w.r.t. t, see later for kFun
+    # psiPrime.s <- function(t, s, k) kFun(-1/theta[s],k) * (1+t)^(-k-1/theta[s]) # kth derivative w.r.t. t, see later for kFun
+    psiPrime.s <- function(t, s, k) (-1)^k * gamma(k + 1/theta)/gamma(1/theta) * (1+t)^(-k-1/theta) # kth derivative w.r.t. t, see later for kFun
     psiIPrime.s <- function(u, s) - theta[s] * u^(-theta[s]-1) # first derivative w.r.t. u
-    
+        
     C.s <- function(uu.s, s) sapply(uu.s, psiI.s, s) %>% sum %>% psi.s(s = s)
     C <- function(uus) sapply(seq_along(uus), function(s) C.s(uus[[s]], s)) %>% C.s(s=1)
     
@@ -93,7 +94,8 @@ scoreFunctionTOP <- function(X, family, tau, departure){
     psi.s <- function(t, s) exp(-t^(1/theta[s]))
     psiI.s <- function(u, s) (-log(u))^theta[s]
     # psiPrime.s <- function(t, s, k) -exp(-t^(1/theta[s])) * t^(1/theta[s] - 1) / theta[s]
-    psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) sFun(1/theta[s], k, j)*(-1/theta[s])^j))
+    # psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) sFun(1/theta[s], k, j)*(-1/theta[s])^j))
+    psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) t^j/theta[s] * (-1)^(j) * sFun(1/theta[s], k, j)*(-1/theta[s])^j))
     psiIPrime.s <- function(u, s) -theta[s]/u * (-log(u))^(theta[s]-1)
     
     C.s <- function(uu.s, s) sapply(uu.s, psiI.s, s) %>% sum %>% psi.s(s = s)
