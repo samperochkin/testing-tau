@@ -12,10 +12,10 @@ library(parallel)
 mc_cores <- 5
 
 #*************** IMPORTANT TUNING PARAMETER
-family <- "elliptical"
-d <- 5
+family <- "gumbel"
+d <- 25
 run.id <- paste(family,d,3,sep="-")
-large.n <- 10000 # for asymptotic results..
+large.n <- 20000 # for asymptotic results..
 M <- 10000
 epsilon <- seq(0,7.5,.1)
 
@@ -25,11 +25,10 @@ epsilon <- seq(0,7.5,.1)
 ################
 # d setup in preamble!
 tau <- c(.3)
-# tau <- c(.25)
-distribution <- c("normal","t4")
+distribution <- c("gumbel")
 
 distribution.grid <- as.data.table(expand.grid(distribution=distribution, tau=tau))
-distribution.grid <- distribution.grid[!(distribution %in% c("clayton","gumbel") & tau == 0)]
+distribution.grid <- distribution.grid[!(distribution %in% c("clayton") & tau == 0)]
 distribution.grid[, sigma_id := 1:nrow(distribution.grid)]
 distribution.grid <- as.data.table(merge.data.frame(distribution.grid, data.frame(d=d), all=T))
 distribution.grid[, Sigma_id := 1:nrow(distribution.grid)]
@@ -215,7 +214,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/",run.id,"/zeta1_l
   source("sim/sim-main/powerCurves/functions/computeZeta1.R")
   
   zeta1.list <- list()
-  for(i in zeta1.grid$zeta1_id) zeta1.list[[i]] <- computeZeta1(zeta1.grid[i,], N=20000) # it calls mclapply inside (for hacs)
+  zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i) computeZeta1(zeta1.grid[i,], N=20000), mc.cores = mc_cores)
   saveRDS(zeta1.list, paste0("sim/sim-main/powerCurves/pre-computed/",run.id,"/zeta1_list.rds"))
   
 }else{

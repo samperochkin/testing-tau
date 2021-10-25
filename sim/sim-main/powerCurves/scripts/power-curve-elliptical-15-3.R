@@ -13,9 +13,9 @@ mc_cores <- 5
 
 #*************** IMPORTANT TUNING PARAMETER
 family <- "elliptical"
-d <- 5
+d <- 15
 run.id <- paste(family,d,3,sep="-")
-large.n <- 10000 # for asymptotic results..
+large.n <- 20000 # for asymptotic results..
 M <- 10000
 epsilon <- seq(0,7.5,.1)
 

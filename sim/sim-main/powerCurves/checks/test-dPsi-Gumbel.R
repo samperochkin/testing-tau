@@ -16,15 +16,15 @@ psiPrime1 <- function(t, k){
     }) %>% sum()
 }
 
-psiPrime2 <- function(t, k){
-  (-1)^k * psi.s(t) / t^k *
-    sapply(1:k, function(j){
-      # (1/theta)^j *
-      t^(j/theta)
-      factorial(k)/factorial(j) *
-        (sapply(1:j, function(l) choose(j,l) * choose(l/theta,k) * (-1)^(k-l) ) %>% sum())
-    }) %>% sum()
-}
+# psiPrime2 <- function(t, k){
+#   (-1)^k * psi.s(t) / t^k *
+#     sapply(1:k, function(j){
+#       # (1/theta)^j *
+#       t^(j/theta)
+#       factorial(k)/factorial(j) *
+#         (sapply(1:j, function(l) choose(j,l) * choose(l/theta,k) * (-1)^(k-l) ) %>% sum())
+#     }) %>% sum()
+# }
 # psiPrime2 <- function(t, k){
 #   (-1)^k * psi.s(t)/t^k *
 #     sapply(1:k, function(j){
@@ -33,6 +33,13 @@ psiPrime2 <- function(t, k){
 #         sapply(j:k, function(l) (1/theta)^l * Stirling1(k,l) * Stirling2(l,j) ) %>% sum()
 #     }) %>% sum()
 # }
+psiPrime2 <- function(t, k){
+  psi.s(t)/t^k *
+    sapply(1:k, function(j){
+      t^(j/theta) * (-1)^(j) *
+        sapply(j:k, function(l) (1/theta)^l * Stirling1(k,l) * Stirling2(l,j) ) %>% sum()
+    }) %>% sum()
+}
 
 psiPrime1(.1, 5); psiPrime2(.1, 5)
 psiPrime1(.1, 6); psiPrime2(.1, 6)

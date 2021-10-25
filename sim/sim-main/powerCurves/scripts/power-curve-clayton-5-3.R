@@ -9,14 +9,14 @@ library(pcaPP)
 library(parallel)
 
 # Setup -------------------------------------------------------------------
-mc_cores <- 4
+mc_cores <- 5
 
 #*************** IMPORTANT TUNING PARAMETER
 family <- "clayton"
 d <- 5
 run.id <- paste(family,d,3,sep="-")
 large.n <- 10000 # for asymptotic results..
-M <- 5000
+M <- 10000
 epsilon <- seq(0,7.5,.1)
 
 
@@ -69,7 +69,7 @@ full.grid <- as.data.table(full.grid)
 source("sim/sim-main/functionsLow2/generateData.R")
 source("sim/sim-main/functionsLow2/averageSigma.R")
 
-N <- 10000
+N <- 20000
 sigma.grid <- distribution.grid[,.(distribution = unique(distribution), tau = unique(tau)), .(sigma_id = sigma_id)]
 
 if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/",run.id,"/sigma_list.rds"))){
@@ -214,7 +214,7 @@ if(!file.exists(paste0("sim/sim-main/powerCurves/pre-computed/",run.id,"/zeta1_l
   source("sim/sim-main/powerCurves/functions/computeZeta1.R")
   
   zeta1.list <- list()
-  zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i) computeZeta1(zeta1.grid[i,], N=10000), mc.cores = mc_cores)
+  zeta1.list <- mclapply(1:nrow(zeta1.grid), function(i) computeZeta1(zeta1.grid[i,], N=20000), mc.cores = mc_cores)
   saveRDS(zeta1.list, paste0("sim/sim-main/powerCurves/pre-computed/",run.id,"/zeta1_list.rds"))
   
 }else{

@@ -95,7 +95,7 @@ scoreFunctionTOP <- function(X, family, tau, departure){
     psiI.s <- function(u, s) (-log(u))^theta[s]
     # psiPrime.s <- function(t, s, k) -exp(-t^(1/theta[s])) * t^(1/theta[s] - 1) / theta[s]
     # psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) sFun(1/theta[s], k, j)*(-1/theta[s])^j))
-    psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) t^j/theta[s] * (-1)^(j) * sFun(1/theta[s], k, j)*(-1/theta[s])^j))
+    psiPrime.s <- function(t, s, k) psi.s(t, s)/t^k * sum(sapply(1:k, function(j) t^(j/theta[s]) * (-1)^(j) * sFun(1/theta[s], k, j)))
     psiIPrime.s <- function(u, s) -theta[s]/u * (-log(u))^(theta[s]-1)
     
     C.s <- function(uu.s, s) sapply(uu.s, psiI.s, s) %>% sum %>% psi.s(s = s)
