@@ -1,0 +1,19 @@
+######## README
+
+
+### main functions
+
+# structureBuilderTrail.R
+
+
+### full example
+
+# example-structureBuilder.R (no seed)
+# example-empirical.R (obsolete? - seed)
+# example-empirical-2.R (seed)
+
+
+### selected parts (vizu)
+
+# example-strucs.R
+# example-strucs-extra.R

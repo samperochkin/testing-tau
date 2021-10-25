@@ -46,7 +46,7 @@ ggplot(dt[n == 100 & dtau == .1 & tau == .3 & Sh == "ShJ" & S == "I"],
   # scale_linetype_manual(breaks = c("I", "Sh"), values = 1:2, labels = c(bquote(I), bquote(Sigma))) +
   scale_linetype_manual(name = "norm (statistic)", breaks = c("Euclidean", "Supremum"), values=c(1:2),
                         labels = c(expression(paste("Euclidean (", E["np"], ")")), expression(paste("Supremum (", M["np"], ")")))) +
-  scale_shape_manual(name = "copula", breaks = c("normal", "t4", "gumbel", "clayton"), values = c(16,15,17,3), labels = c("Normal", expression(paste("student's ", t[4])), "Gumbel", "Clayton")) +
+  scale_shape_manual(name = "copula", breaks = c("normal", "t4", "gumbel", "clayton"), values = c(16,15,17,3), labels = c("Normal", expression(paste("Student's ", t[4])), "Gumbel", "Clayton")) +
   # geom_vline(xintercept=0) +
   # geom_hline(yintercept=0) +
   # geom_hline(yintercept=.05, lty=3, col="gray25") +
@@ -97,7 +97,7 @@ ggplot(dt[n == 100 & dtau == .1 & tau == .3 & Sh == "SbJ" & distribution == "nor
         strip.background = element_rect(fill="gray96"),
         strip.text = element_text(colour = 'black'),
         legend.text = element_text(size = 11)) +
-  guides(shape = guide_legend(order = 1), col = guide_legend(linetype = 2)) +
+  guides(shape = guide_legend(order = 2), linetype = guide_legend(order = 1)) +
   geom_point() +
   geom_line() +
   xlab("dimension (d)") +
@@ -107,7 +107,7 @@ ggplot(dt[n == 100 & dtau == .1 & tau == .3 & Sh == "SbJ" & distribution == "nor
                         labels = c(expression(paste("Euclidean (", E["np"], ")")), expression(paste("Supremum (", M["np"], ")")))) +
   scale_shape_manual(breaks = c("I", "Sh"), values = c(16,15),
                      labels = c(expression(paste("(1/n)", I[p])), expression(hat(Sigma)[np]))) +
-  geom_hline(yintercept=.05, lty=3, col="gray25") +
+  # geom_hline(yintercept=.05, lty=3, col="gray25") +
   facet_grid(~dtau_type, labeller = label_bquote(cols = paste(.(paste0(dtau_type)), " departure")))
 
 
@@ -130,3 +130,4 @@ ggplot(dt[n == 100 & dtau == .1 & tau == .3 & Sh == "SbJ" & distribution == "nor
                      labels = c(expression(paste("(1/n)", I[p])), expression(hat(Sigma)[np]))) +
   geom_hline(yintercept=.05, lty=3, col="gray25") +
   facet_grid(~dtau_type, labeller = label_bquote(cols = paste(.(paste0(dtau_type)), " departure")))
+
