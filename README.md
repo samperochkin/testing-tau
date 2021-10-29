@@ -5,4 +5,4 @@ Contains code for the paper
 (Perreault, Neslehova and Duchesne, 2021+)
 as well as (backup) code used for my doctoral thesis.
 
-Please reach out to me for help.
+Please reach out to me for help: samuel[dot]perreault[at]utoronto[dot]ca
