@@ -1,0 +1,5 @@
+Note that the files found here were generated using the files in the folder
+
+  "testing-tau/powerCurves"
+
+After re-organizing the repository, only the results and intermediate quantities were kept here. Consequently, many files in the latter folder have mispecified paths. Reach out to me if you need some help navigating through all this.

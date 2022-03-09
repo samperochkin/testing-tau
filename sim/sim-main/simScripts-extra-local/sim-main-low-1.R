@@ -3,7 +3,7 @@
 library(data.table)
 
 # functions ---------------------------------------------------------------
-source("simFunLow2Local.R")
+source("simFuns/simFunLow2Local.R")
 
 # procedure ---------------------------------------------------------------
 
@@ -12,10 +12,10 @@ simFunLow2Local(
        n = c(50,150,250),
        d = c(5),
        tau = .3,
-       delta = 0:10,
+       delta = 0:2,
        distribution = c("normal"),
        num_sim = 2500,
        filename = "/store/samuel/testing-tau-extra/dt_main_local_low_1",
-       clus = 2
+       clus = 1
 )
 difftime(Sys.time(),tiime)

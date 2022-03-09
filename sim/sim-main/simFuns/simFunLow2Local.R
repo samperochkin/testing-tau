@@ -12,7 +12,7 @@ simFunLow2Local <- function(n=100, d=10, tau=.5, delta=0, distribution="normal",
   library(parallel)
   library(mvtnorm)
   library(data.table)
-  sapply(list.files("functionsLow2/", full.names = T), source, local = environment())
+  sapply(list.files("functionsLow2Local/", full.names = T), source, local = environment())
   
   # create a parameter grid
   sim.grid <- createGrid(n, d, tau, delta, distribution, num_sim)
@@ -53,7 +53,7 @@ simFunLow2Local <- function(n=100, d=10, tau=.5, delta=0, distribution="normal",
     
     X <- generateData(n,d,tau,dtau,dtau_type,distribution)
     
-    cbind(sim.grid[r,],performTestsLow2(X,M=M))
+    cbind(sim.grid[r,],performTestsLow2Local(X,M=M))
   }))
   
   fwrite(res, paste0(filename,".csv"))

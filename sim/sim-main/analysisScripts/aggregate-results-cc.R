@@ -10,5 +10,8 @@ fii <- fii[!grepl("low_4", fii)]
 fii <- fii[!grepl("low_5_hac", fii)]
 fii <- fii[!grepl("low_6_hac", fii)]
 fii <- fii[!grepl("low_7_hac", fii)]
+fii <- fii[!grepl("500_1", fii)] # extra simulations (not reported)
+fii <- fii[!grepl("500_test", fii)] # extra simulations (not reported)
+fii <- fii[!grepl("local", fii)]
 dt <- contructDT(fii)
 fwrite(dt, "sim/sim-main/results/results-extra/dt_exch_cc.csv")

@@ -1,0 +1,45 @@
+
+R version 4.1.2 (2021-11-01) -- "Bird Hippie"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> # packages ----------------------------------------------------------------
+> library(data.table)
+> 
+> # functions ---------------------------------------------------------------
+> source("simFuns/simFunLowBootLocal.R")
+> 
+> # procedure ---------------------------------------------------------------
+> 
+> tiime <- Sys.time()
+> simFunLowBootLocal(n = c(50,150,250),
++        d = 25,
++        tau = .3,
++        delta = 0:4,
++        distribution = c("normal", "t4"),
++        num_sim = 2500,
++        filename = "/store/samuel/testing-tau-extra/dt_main_local_boot_1",
++        clus = 6
++ )
+NULL
+> difftime(Sys.time(),tiime)
+Time difference of 6.84995 hours
+> 
+> proc.time()
+     user    system   elapsed 
+    5.232     0.495 24660.038 
