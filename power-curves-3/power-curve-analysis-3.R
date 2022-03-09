@@ -123,7 +123,7 @@ small.grid[, facet_labels := paste(dtau_t_lookup[as.character(dtau_type)], "~(",
 unique(small.grid$facet_labels)
 small.grid$facet_labels <- factor(small.grid$facet_labels,
                                   levels = unique(small.grid$facet_labels)[c(1,3,2,4)])
-small.grid$d <- factor(small.grid$d, levels=ds, labels=c(TeX("d = 5"), paste(TeX("d = 25"))))
+small.grid$d_lab <- factor(small.grid$d, levels=ds, labels=c(TeX("d = 5"), paste(TeX("d = 25"))))
 
 
 ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
@@ -150,7 +150,7 @@ ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
   geom_vline(xintercept=0) +
   geom_hline(yintercept=0) +
   geom_hline(yintercept=al, lty=3, col="gray25") +
-  facet_grid(d~facet_labels, labeller = label_parsed)
+  facet_grid(d_lab~facet_labels, labeller = label_parsed)
 
 
 
@@ -176,37 +176,121 @@ emp.grid <- emp.grid[d %in% ds & distribution %in% c("normal", "t4") & tau == ta
 emp.grid[, facet_labels := paste(dtau_t_lookup[as.character(dtau_type)], "~(",
                                  dist_lookup[as.character(distribution)], ")")]
 
-cbind(emp.grid[1:10],emp.grid[1:10, paste(dtau_t_lookup[dtau_type], "~(",
-                                 dist_lookup[distribution], ")")])
-
 unique(emp.grid$facet_labels)
 emp.grid$facet_labels <- factor(emp.grid$facet_labels,
-                                  levels = unique(emp.grid$facet_labels)[4:1])
-small.grid$d <- factor(small.grid$d, levels=ds, labels=c(TeX("d = 5"), paste(TeX("d = 25"))))
+                                  levels = unique(emp.grid$facet_labels)[c(2,1,3,4)])
+emp.grid$d_lab <- factor(emp.grid$d, levels=ds, labels=c(TeX("d = 5"), paste(TeX("d = 25"))))
 
+S_lab <- c("Sh" = "S == hat(Sigma)[np]", "I" = "S == (1/n)~I[p]")
+small.grid[, S_lab := as.factor(S_lab[as.character(S)])]
+emp.grid[, S_lab := as.factor(S_lab[as.character(S)])]
 
-ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
+norm_lab <- c("Euclidean" = "Euclidean~norm~(E[np])",
+              "Supremum" = "Supremum~norm~(M[np])")
+small.grid[, norm_lab := as.factor(norm_lab[as.character(norm)])]
+emp.grid[, norm_lab := as.factor(norm_lab[as.character(norm)])]
+
+# n0 <- sort(unique(emp.grid$n))
+n0 <- c(50, 150, 250, 500, 1000)
+Sh0 <- c("ShJ", "SbJ")
+
+# test single Normal
+dtau_type0 <- "single"
+dis0 <- "normal"
+d0 <- 25
+
+ggplot(small.grid[dtau_type == dtau_type0 & distribution == dis0 & d == d0],
+       aes(x=epsilon, y=power, linetype=norm)) +
+  ggtitle(paste0("Power under local ", dtau_type0, " departures (", dist_lookup[dis0], " copula, d=", d0,")")) +
   xlab(bquote(paste("delta (", Delta, ")"))) +
   theme_light() +
   theme(panel.grid.minor = element_blank(),
         strip.background = element_rect(fill="gray95"),
         strip.text = element_text(colour = 'black'),
-        legend.position = "none",
+        # legend.position = "none",
         strip.text.x = element_text(size = 11.5),
+        strip.text.y = element_text(size = 11.5),
         axis.title=element_text(size=12)) +
-  geom_line() +
-  geom_point(data = small.grid[epsilon %in% c(1,2,3,4,5,6,7,8,9,10)],
-             aes(x=epsilon, y=power, shape=S), size=1.5) +
+  guides(linetype="none",
+         color=guide_legend(title="sample size (n)"), alpha=guide_legend(title="sample size (n)")) +
   ###### ADJUST THESE LINES ####
-coord_cartesian(xlim = c(0,7.5)) +
+  coord_cartesian(xlim = c(0,7.5)) +
   scale_x_continuous(breaks = c(0, 2.5, 5, 7.5, 10), labels = c("0", "2.5", "5", "7.5", "10")) +
   scale_y_continuous(breaks = c(0, .5, 1), labels = c("0", "0.5", "1")) +
   ##############################
-scale_shape_manual(breaks = c("I", "Sh"), values = c(16,17),
-                   labels = c(expression(paste("(1/n)", I[p])), expression(hat(Sigma)[np]))) +
-  scale_linetype_manual(name = "norm (statistic)", breaks = c("Euclidean", "Supremum"), values=c(1:2),
-                        labels = c(expression(paste("Euclidean (", E["np"], ")")), expression(paste("Supremum (", M["np"], ")")))) +
+  scale_shape_manual(name = expression(covariance~estimator~(hat(Sigma)[np])),
+                   breaks = c("ShJ", "SbJ"), values = c(16,17),
+                   labels = c(expression(hat(Sigma)[np]^J), expression(bar(Sigma)[np]^J))) +
+  # scale_linetype_manual(name = "norm (statistic)", breaks = c("Euclidean", "Supremum"), values=c(1:2),
+  #                       labels = c(expression(paste("Euclidean (", E["np"], ")")), expression(paste("Supremum (", M["np"], ")")))) +
+  # scale_colour_discrete(name = "sample size (n)") +
+  # scale_alpha_continuous(name = "sample size (n)", range = c(.25,1), breaks = n0, label = n0) +
+  scale_alpha_discrete(range = c(.3,1)) +
   geom_vline(xintercept=0) +
   geom_hline(yintercept=0) +
   geom_hline(yintercept=al, lty=3, col="gray25") +
-  facet_grid(d~facet_labels, labeller = label_parsed)
+  geom_line() +
+  geom_point(data=emp.grid[distribution == dis0 & dtau_type == dtau_type0 & d == d0 &
+                             Sh %in% Sh0 & n %in% n0][tau+delta/sqrt(n) < 1],
+             aes(x=delta, y=power, alpha = as.factor(n), shape=Sh, col=as.factor(n)), size = 2.5) +
+  facet_grid(S_lab~norm_lab, labeller = label_parsed)
+
+
+
+comb_grid <- expand.grid(dis0 = c("normal", "t4"),
+                         dtau_type0 = c("single", "column"),
+                         d0 = c(5, 25))
+# dist_lookup <- c("normal" = "Normal", "t4" = expression(t[4]))
+dist_lookup <- c("normal" = "Normal", "t4" = "t[4]")
+
+for(k in 1:nrow(comb_grid)){
+  dis0 <- as.character(comb_grid$dis0[k])
+  dtau_type0 <- as.character(comb_grid$dtau_type0[k])
+  d0 <- as.integer(comb_grid$d0[k])
+  
+  if(dis0 == "t4") tit <- bquote(paste("Power under local ", .(dtau_type0), " departures (", t[4], " copula, d=", .(d0),")", sep=""))
+  if(dis0 == "normal") tit <- as.expression(bquote(paste("Power under local ", .(dtau_type0), " departures (", .(dist_lookup[dis0]), " copula, d=", .(d0),")", sep="")))
+  
+  pdf(file = paste0("power-curves-3/figures/emp",k,".pdf"), width = 9*.9, height = 6*.9)
+  print(ggplot(small.grid[dtau_type == dtau_type0 & distribution == dis0 & d == d0],
+         aes(x=epsilon, y=power, linetype=norm)) +
+    ggtitle(tit) +
+    xlab(bquote(paste("delta (", Delta, ")"))) +
+    theme_light() +
+    theme(panel.grid.minor = element_blank(),
+          strip.background = element_rect(fill="gray95"),
+          strip.text = element_text(colour = 'black'),
+          # legend.position = "none",
+          strip.text.x = element_text(size = 11.5),
+          strip.text.y = element_text(size = 11.5),
+          axis.title=element_text(size=12),
+          legend.text = element_text(size=11.5),
+          legend.title = element_text(size=11.5)) +
+    guides(linetype="none",
+           color=guide_legend(title="sample size (n)"), alpha=guide_legend(title="sample size (n)")) +
+    ###### ADJUST THESE LINES ####
+    coord_cartesian(xlim = c(0,7.5)) +
+    scale_x_continuous(breaks = c(0, 2.5, 5, 7.5, 10), labels = c("0", "2.5", "5", "7.5", "10")) +
+    scale_y_continuous(breaks = c(0, .5, 1), labels = c("0", "0.5", "1")) +
+    ##############################
+    scale_shape_manual(name = expression(cov.~estimator~(hat(Sigma)[np])),
+                     breaks = c("ShJ", "SbJ"), values = c(16,17),
+                     labels = c(expression(hat(Sigma)[np]^J), expression(bar(Sigma)[np]^J))) +
+    # scale_linetype_manual(name = "norm (statistic)", breaks = c("Euclidean", "Supremum"), values=c(1:2),
+    #                       labels = c(expression(paste("Euclidean (", E["np"], ")")), expression(paste("Supremum (", M["np"], ")")))) +
+    # scale_colour_discrete(name = "sample size (n)") +
+    # scale_alpha_continuous(name = "sample size (n)", range = c(.25,1), breaks = n0, label = n0) +
+    scale_alpha_discrete(range = c(.3,1)) +
+    geom_vline(xintercept=0) +
+    geom_hline(yintercept=0) +
+    geom_hline(yintercept=al, lty=3, col="gray25") +
+    geom_line() +
+    geom_point(data=emp.grid[distribution == dis0 & dtau_type == dtau_type0 & d == d0 &
+                               Sh %in% Sh0 & n %in% n0][tau+delta/sqrt(n) < 1],
+               aes(x=delta, y=power, alpha = as.factor(n), shape=Sh, col=as.factor(n)), size = 2.5) +
+    facet_grid(S_lab~norm_lab, labeller = label_parsed))
+  
+  
+  dev.off()  
+}
+
