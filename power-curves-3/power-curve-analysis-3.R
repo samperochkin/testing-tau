@@ -126,7 +126,7 @@ small.grid$facet_labels <- factor(small.grid$facet_labels,
 small.grid$d_lab <- factor(small.grid$d, levels=ds, labels=c(TeX("d = 5"), paste(TeX("d = 25"))))
 
 
-ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
+gg <- ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
   xlab(bquote(paste("delta (", Delta, ")"))) +
   theme_light() +
   theme(panel.grid.minor = element_blank(),
@@ -134,6 +134,7 @@ ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
         strip.text = element_text(colour = 'black'),
         legend.position = "none",
         strip.text.x = element_text(size = 11.5),
+        strip.text.y = element_text(size = 11.5),
         axis.title=element_text(size=12)) +
   geom_line() +
   geom_point(data = small.grid[epsilon %in% c(1,2,3,4,5,6,7,8,9,10)],
@@ -151,8 +152,11 @@ ggplot(small.grid, aes(x=epsilon, y=power, shape=S, linetype=norm)) +
   geom_hline(yintercept=0) +
   geom_hline(yintercept=al, lty=3, col="gray25") +
   facet_grid(d_lab~facet_labels, labeller = label_parsed)
+gg
 
-
+pdf(file = paste0("power-curves-3/figures/power-curves.pdf"), width = 8, height = 4)
+  print(gg)
+dev.off()
 
 ####
 #### Plots for appendix
